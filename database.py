@@ -94,6 +94,18 @@ def init_db():
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS opportunities (
+                        id SERIAL PRIMARY KEY,
+                        title VARCHAR(250) NOT NULL,
+                        category VARCHAR(60),
+                        score INT DEFAULT 80,
+                        action_plan TEXT,
+                        source VARCHAR(100),
+                        status VARCHAR(30) DEFAULT 'NEW',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
                 default_wallets = [
                     ("survival_api", "Server, Domain & AI Survival Fund", 20.00),
                     ("upgrade_reserve", "System Self-Upgrade Fund", 15.00),

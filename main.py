@@ -13,6 +13,7 @@ from sentinel import smart_generate, diagnose_and_alert, send_alert, PRIMARY_MOD
 from governance import check_compliance
 from cloner import register_unique_or_reject, spawn_clone_agent, run_clone_agent
 from treasury import record_and_distribute_earning
+from hunter import run_opportunity_scan, generate_daily_venture
 from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
@@ -28,7 +29,7 @@ async def lifespan(app: FastAPI):
         diagnose_and_alert("startup.init_db", e)
     yield
 
-app = FastAPI(title="aIValue8 Corporation OS - Mark 1", lifespan=lifespan)
+app = FastAPI(title="aIValue8 Corporation OS - Mark 2", lifespan=lifespan)
 
 def verify_admin(x_admin_key: str = Header(default="")):
     if x_admin_key != ADMIN_API_KEY:
@@ -87,15 +88,21 @@ def owner_panel():
 
 @app.get("/logo.svg")
 def get_logo():
-    return FileResponse(os.path.join(BASE_DIR, "logo.svg"), media_type="image/svg+xml")
+    path = os.path.join(BASE_DIR, "logo.svg")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="logo.svg not found")
+    return FileResponse(path, media_type="image/svg+xml")
 
 @app.get("/icon.svg")
 def get_icon():
-    return FileResponse(os.path.join(BASE_DIR, "icon.svg"), media_type="image/svg+xml")
+    path = os.path.join(BASE_DIR, "icon.svg")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="icon.svg not found")
+    return FileResponse(path, media_type="image/svg+xml")
 
 @app.get("/health")
 def health_check():
-    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-1"}
+    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-2.1"}
 
 @app.get("/watchdog")
 def deep_watchdog():
@@ -111,6 +118,26 @@ def deep_watchdog():
         diagnose_and_alert("watchdog", e)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/public/telemetry")
+def public_telemetry():
+    try:
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM agents_registry WHERE status = 'ACTIVE';")
+                agents = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM governance_logs WHERE is_approved = TRUE;")
+                gov = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM sentinel_incidents WHERE healed = TRUE;")
+                healed = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM opportunities;")
+                opps = cur.fetchone()[0]
+        finally:
+            conn.close()
+        return {"active_agents": agents, "governance_checks": gov, "healed_bugs": healed, "opportunities_found": opps}
+    except Exception:
+        return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0}
+
 @app.post("/public/evaluate")
 def public_evaluate(req: EvaluateRequest, request: Request):
     idea = req.business_idea.strip()
@@ -119,23 +146,15 @@ def public_evaluate(req: EvaluateRequest, request: Request):
     client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
     if not check_public_rate_limit(client_ip):
         raise HTTPException(status_code=429, detail="Thodi der baad try karein (Demo limit reached).")
-
     gov = check_compliance("PUBLIC_EVALUATOR", idea)
     if not gov["approved"]:
         raise HTTPException(status_code=400, detail=gov["reason"])
-
     try:
         prompt = f"""
         Visitor ne ye business/tech requirement di hai: "{idea}"
         Tum 'aIValue8' ke Solutions Architect ho. Sirf AI, Business Growth, Website/App Build, Automation, CRM, ya Purchase/Sell Support ke perspective se Hinglish/English mein evaluate karo.
         Reply ONLY valid JSON:
-        {{
-          "growth_score": 85,
-          "category": "AI + Web & CRM",
-          "summary": "2 line crisp encouraging evaluation",
-          "steps": ["Step 1", "Step 2", "Step 3"],
-          "launch_time": "7-14 Days"
-        }}
+        {{"growth_score": 85, "category": "AI + Web & CRM", "summary": "2 line crisp evaluation", "steps": ["Step 1", "Step 2", "Step 3"], "launch_time": "7-14 Days"}}
         """
         raw = smart_generate(prompt, system_prompt="Tum aIValue8 AI Evaluator ho.", json_mode=True)
         return json.loads(raw.strip())
@@ -147,6 +166,22 @@ def public_evaluate(req: EvaluateRequest, request: Request):
 def public_inquiry(req: LeadRequest):
     req.source = "public-website"
     return _process_and_save_lead(req, always_alert=True)
+
+@app.post("/hunter/scan", dependencies=[Depends(verify_admin)])
+def api_hunter_scan():
+    try:
+        return run_opportunity_scan()
+    except Exception as e:
+        diagnose_and_alert("hunter.scan", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/hunter/daily-venture", dependencies=[Depends(verify_admin)])
+def api_daily_venture():
+    try:
+        return generate_daily_venture()
+    except Exception as e:
+        diagnose_and_alert("hunter.daily_venture", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/ask")
 def ask_ceo(req: ChatRequest):
@@ -241,14 +276,17 @@ def company_dashboard():
             leads_summary = cur.fetchall()
             cur.execute("SELECT lead_name, contact, lead_type, temperature, requirement, created_at FROM crm_leads ORDER BY id DESC LIMIT 10;")
             recent_leads = cur.fetchall()
+            cur.execute("SELECT title, category, score, action_plan, created_at FROM opportunities ORDER BY id DESC LIMIT 10;")
+            recent_opportunities = cur.fetchall()
             cur.execute("SELECT module, error_text, healed, created_at FROM sentinel_incidents ORDER BY id DESC LIMIT 5;")
             recent_incidents = cur.fetchall()
         return {
-            "company": "aIValue8 Corporation (Mark 1)",
+            "company": "aIValue8 Corporation (Mark 2.1)",
             "wallets": wallets,
             "clone_agents": agents,
             "crm_leads": leads_summary,
             "recent_leads": recent_leads,
+            "recent_opportunities": recent_opportunities,
             "sentinel_logs": recent_incidents
         }
     finally:
