@@ -2,6 +2,7 @@ import os
 import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
 
@@ -10,6 +11,7 @@ from sentinel import smart_generate, diagnose_and_alert, send_alert, PRIMARY_MOD
 from governance import check_compliance
 from cloner import register_unique_or_reject, spawn_clone_agent, run_clone_agent
 from treasury import record_and_distribute_earning
+from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
 
@@ -60,6 +62,14 @@ clone agents ko manage karna, bugs heal karna, aur owner + family ke liye sustai
 Jawab clear, practical aur Hinglish mein do.
 """
 
+@app.get("/", response_class=HTMLResponse)
+def public_home():
+    return PUBLIC_HOME_HTML
+
+@app.get("/panel", response_class=HTMLResponse)
+def owner_panel():
+    return OWNER_PANEL_HTML
+
 @app.get("/health")
 def health_check():
     return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-1"}
@@ -77,6 +87,11 @@ def deep_watchdog():
     except Exception as e:
         diagnose_and_alert("watchdog", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/public/inquiry")
+def public_inquiry(req: LeadRequest):
+    req.source = "public-website"
+    return _process_and_save_lead(req, always_alert=True)
 
 @app.post("/ask")
 def ask_ceo(req: ChatRequest):
@@ -115,8 +130,7 @@ def api_run_agent(req: RunAgentRequest):
         diagnose_and_alert("agent.run", e)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/crm/add-lead", dependencies=[Depends(verify_admin)])
-def add_crm_lead(req: LeadRequest):
+def _process_and_save_lead(req: LeadRequest, always_alert: bool = False):
     try:
         if not register_unique_or_reject("CRM_LEAD", req.contact, req.lead_name):
             return {"status": "duplicate_skipped", "message": "Ye contact pehle se CRM mein maujood hai."}
@@ -140,12 +154,16 @@ def add_crm_lead(req: LeadRequest):
                     """, (req.lead_name, req.contact, req.lead_type, temperature, req.requirement, req.source))
         finally:
             conn.close()
-        if temperature == "HOT":
-            send_alert(f"🔥 HOT LEAD DETECTED!\nName: {req.lead_name}\nContact: {req.contact}\nNeed: {req.requirement}\nAction: {temp_data.get('next_action')}")
+        if always_alert or temperature == "HOT":
+            send_alert(f"📩 NEW LEAD [{temperature}] ({req.source})\nName: {req.lead_name}\nContact: {req.contact}\nType: {req.lead_type}\nNeed: {req.requirement}\nAction: {temp_data.get('next_action')}")
         return {"status": "saved", "temperature": temperature, "next_action": temp_data.get("next_action")}
     except Exception as e:
         diagnose_and_alert("crm.add_lead", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/crm/add-lead", dependencies=[Depends(verify_admin)])
+def add_crm_lead(req: LeadRequest):
+    return _process_and_save_lead(req, always_alert=False)
 
 @app.post("/treasury/record-earning", dependencies=[Depends(verify_admin)])
 def api_record_earning(req: EarningRequest):
@@ -166,6 +184,8 @@ def company_dashboard():
             agents = cur.fetchall()
             cur.execute("SELECT temperature, COUNT(*) as total FROM crm_leads GROUP BY temperature;")
             leads_summary = cur.fetchall()
+            cur.execute("SELECT lead_name, contact, lead_type, temperature, requirement, created_at FROM crm_leads ORDER BY id DESC LIMIT 10;")
+            recent_leads = cur.fetchall()
             cur.execute("SELECT module, error_text, healed, created_at FROM sentinel_incidents ORDER BY id DESC LIMIT 5;")
             recent_incidents = cur.fetchall()
         return {
@@ -173,6 +193,7 @@ def company_dashboard():
             "wallets": wallets,
             "clone_agents": agents,
             "crm_leads": leads_summary,
+            "recent_leads": recent_leads,
             "sentinel_logs": recent_incidents
         }
     finally:
