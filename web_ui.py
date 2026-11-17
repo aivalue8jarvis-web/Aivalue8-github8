@@ -9,7 +9,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
     body{background:#030712;color:#e2e8f0;line-height:1.6;overflow-x:hidden;position:relative;}
     #aiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.55;}
-    .container{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:20px 16px 40px;}
+    .container{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:20px 16px 40px;}
     .logo-wrap{margin-bottom:16px;}
     .logo-wrap img{width:100%;max-width:630px;height:auto;display:block;border-radius:18px;border:1px solid rgba(56,189,248,0.25);box-shadow:0 0 35px rgba(37,99,235,0.2);}
     .pulse-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(52,211,153,0.35);color:#34d399;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:700;margin-bottom:14px;}
@@ -19,24 +19,27 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     .typed{background:linear-gradient(90deg,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
     .cursor{display:inline-block;width:3px;height:24px;background:#34d399;vertical-align:middle;animation:blink 0.8s infinite;margin-left:3px;}
     @keyframes blink{50%{opacity:0;}}
-    .hero-sub{color:#94a3b8;font-size:14.5px;margin-bottom:20px;}
-    .telemetry{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:22px;}
+    .hero-sub{color:#94a3b8;font-size:14.5px;margin-bottom:18px;}
+    .telemetry{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
     .t-card{background:rgba(15,23,42,0.8);border:1px solid #1e293b;border-radius:12px;padding:12px;text-align:center;}
     .t-num{font-size:22px;font-weight:800;color:#38bdf8;}
     .t-lbl{font-size:11.5px;color:#94a3b8;margin-top:2px;}
-    .glass-box{background:rgba(15,23,42,0.78);backdrop-filter:blur(14px);border:1px solid rgba(56,189,248,0.3);border-radius:18px;padding:18px;margin-bottom:22px;box-shadow:0 0 35px rgba(37,99,235,0.12);}
+    .glass-box{background:rgba(15,23,42,0.78);backdrop-filter:blur(14px);border:1px solid rgba(56,189,248,0.3);border-radius:18px;padding:18px;margin-bottom:20px;box-shadow:0 0 35px rgba(37,99,235,0.12);}
     .box-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
     .box-head h2{font-size:18px;color:#f8fafc;}
     .sim-btn{background:rgba(56,189,248,0.15);border:1px solid #38bdf8;color:#38bdf8;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;}
-    .pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
-    .node{background:#020617;border:1px solid #1e293b;border-radius:12px;padding:12px 8px;text-align:center;transition:all 0.35s ease;}
-    .node .ico{font-size:20px;display:block;margin-bottom:4px;}
-    .node .n-title{font-size:12px;font-weight:700;color:#cbd5e1;}
-    .node .n-sub{font-size:10.5px;color:#64748b;}
+    .pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-bottom:12px;}
+    .node{background:#020617;border:1px solid #1e293b;border-radius:12px;padding:10px 6px;text-align:center;transition:all 0.35s ease;}
+    .node .ico{font-size:18px;display:block;margin-bottom:3px;}
+    .node .n-title{font-size:11.5px;font-weight:700;color:#cbd5e1;}
+    .node .n-sub{font-size:10px;color:#64748b;}
     .node.active{border-color:#10b981;background:rgba(16,185,129,0.14);box-shadow:0 0 20px rgba(16,185,129,0.35);transform:translateY(-3px);}
     .node.active .n-title{color:#34d399;}
     .node.done{border-color:#38bdf8;}
     .pipe-log{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:10px 12px;font-family:monospace;font-size:12.5px;color:#34d399;min-height:40px;}
+    .media-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+    .media-card{background:#020617;border:1px solid #1e293b;border-radius:12px;padding:14px;}
+    .m-tag{display:inline-block;background:rgba(56,189,248,0.15);color:#38bdf8;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:6px;}
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px;}
     .chip{background:rgba(30,41,59,0.9);border:1px solid #334155;color:#cbd5e1;padding:6px 12px;border-radius:999px;font-size:12px;cursor:pointer;}
     input,select,textarea{width:100%;background:rgba(2,6,23,0.9);color:#f8fafc;border:1px solid #334155;border-radius:10px;padding:12px;margin-bottom:12px;font-size:14px;outline:none;}
@@ -49,7 +52,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     .bar-fill{height:100%;background:linear-gradient(90deg,#38bdf8,#10b981);width:0%;transition:width 0.8s ease;}
     .steps-list{margin:10px 0 14px 18px;font-size:13.5px;color:#cbd5e1;}
     .btn-outline{width:100%;background:transparent;border:1px solid #38bdf8;color:#38bdf8;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:22px;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
     .card{background:rgba(15,23,42,0.72);border:1px solid #1e293b;border-radius:14px;padding:16px;}
     .card h3{font-size:15.5px;color:#f8fafc;margin-bottom:5px;}
     .card p{font-size:13px;color:#94a3b8;}
@@ -61,27 +64,36 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
   <canvas id="aiCanvas"></canvas>
   <div class="container">
     <div class="logo-wrap"><img src="/logo.svg" alt="aIValue8 Corporation" /></div>
-    <div class="pulse-bar"><span class="dot"></span> aIValue8 Autonomous OS Live &bull; Mark 2.2</div>
+    <div class="pulse-bar"><span class="dot"></span> aIValue8 Autonomous OS Live &bull; Mark 3 Auto-Pilot</div>
     <div class="hero-title"><span id="typedText" class="typed"></span><span class="cursor"></span></div>
-    <p class="hero-sub">Sirf text nahi—live dekhein hamara AI kaise opportunities dhundhta, match karta aur automate karta hai.</p>
+    <p class="hero-sub">Dekhein hamara AI real-time mein kaise opportunities dhundhta, emails/WhatsApp se deal close karta aur marketing content banata hai.</p>
+
     <div class="telemetry">
       <div class="t-card"><div id="statAgents" class="t-num">-</div><div class="t-lbl">Active AI Clones</div></div>
       <div class="t-card"><div id="statGov" class="t-num">-</div><div class="t-lbl">Indian Law Checks</div></div>
       <div class="t-card"><div id="statHealed" class="t-num">-</div><div class="t-lbl">Self-Healed Bugs</div></div>
       <div class="t-card"><div id="statOpps" class="t-num">-</div><div class="t-lbl">Opportunities Found</div></div>
     </div>
+
     <div class="glass-box">
-      <div class="box-head"><h2>⚙️ Live Automation Engine (Visual Flow)</h2><button class="sim-btn" onclick="runPipelineDemo()">▶ Watch Live Flow</button></div>
+      <div class="box-head"><h2>⚙️ Live 7-Step Autonomous Engine</h2><button class="sim-btn" onclick="runPipelineDemo()">▶ Watch Live Flow</button></div>
       <div class="pipeline">
-        <div id="n0" class="node"><span class="ico">🌍</span><div class="n-title">1. Signal / Lead</div><div class="n-sub">Opportunity Scan</div></div>
+        <div id="n0" class="node"><span class="ico">🌍</span><div class="n-title">1. Hunt</div><div class="n-sub">Signal &amp; Lead</div></div>
         <div id="n1" class="node"><span class="ico">🧬</span><div class="n-title">2. Anti-Dup</div><div class="n-sub">SHA-256 Shield</div></div>
         <div id="n2" class="node"><span class="ico">⚖️</span><div class="n-title">3. Indian Law</div><div class="n-sub">DPDP &amp; Ethics</div></div>
-        <div id="n3" class="node"><span class="ico">🤝</span><div class="n-title">4. AI Match</div><div class="n-sub">Clone &amp; Trade</div></div>
-        <div id="n4" class="node"><span class="ico">📲</span><div class="n-title">5. CRM + Pay</div><div class="n-sub">WhatsApp &amp; UPI</div></div>
-        <div id="n5" class="node"><span class="ico">🛡️</span><div class="n-title">6. Self-Heal</div><div class="n-sub">24/7 Sentinel</div></div>
+        <div id="n3" class="node"><span class="ico">📧</span><div class="n-title">4. Auto-Close</div><div class="n-sub">Email → WA</div></div>
+        <div id="n4" class="node"><span class="ico">🎬</span><div class="n-title">5. Media AI</div><div class="n-sub">Scripts &amp; Ads</div></div>
+        <div id="n5" class="node"><span class="ico">💳</span><div class="n-title">6. UPI Pay</div><div class="n-sub">Auto Wallet</div></div>
+        <div id="n6" class="node"><span class="ico">🛡️</span><div class="n-title">7. Self-Heal</div><div class="n-sub">24/7 Sentinel</div></div>
       </div>
-      <div id="pipeLog" class="pipe-log">&gt; System Active... Click "Watch Live Flow" ya neeche Live AI test karein.</div>
+      <div id="pipeLog" class="pipe-log">&gt; Auto-Pilot Ready... Click "Watch Live Flow" ya neeche Free AI test karein.</div>
     </div>
+
+    <div class="glass-box">
+      <div class="box-head"><h2>🎬 Live AI Media &amp; Content Studio</h2><span style="font-size:12px;color:#34d399;">AI-Generated Campaigns</span></div>
+      <div id="mediaShowcase" class="media-grid"><div class="media-card">Loading live AI campaigns...</div></div>
+    </div>
+
     <div class="glass-box">
       <h2>⚡ Live AI Business &amp; Tech Evaluator (Free Demo)</h2>
       <div class="chips">
@@ -101,19 +113,21 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
         <button class="btn-outline" onclick="sendPlanToForm()">🚀 Is Plan Ko Execute Karwayein (Connect Now)</button>
       </div>
     </div>
+
     <div class="grid">
-      <div class="card"><h3>🤖 Autonomous AI Agents</h3><p>24/7 kaam karne wale custom AI clones for sales, research &amp; support.</p></div>
+      <div class="card"><h3>🤖 Autonomous AI Clones</h3><p>24/7 kaam karne wale custom AI clones for sales, research &amp; marketing.</p></div>
       <div class="card"><h3>📈 Business Growth Engine</h3><p>Live market scanning &amp; daily venture ideas to scale revenue.</p></div>
       <div class="card"><h3>💻 Website &amp; App Build</h3><p>High-speed web platforms, dashboards &amp; mobile-ready apps.</p></div>
-      <div class="card"><h3>⚙️ End-to-End Automation</h3><p>Automated workflows, UPI/Bank invoices &amp; instant alerts.</p></div>
-      <div class="card"><h3>📊 Smart WhatsApp CRM</h3><p>Hot/Warm/Cold lead tracking aur automated client follow-ups.</p></div>
+      <div class="card"><h3>⚙️ End-to-End Automation</h3><p>Automated email/WhatsApp follow-ups, UPI invoices &amp; alerts.</p></div>
+      <div class="card"><h3>📊 Smart Multi-Channel CRM</h3><p>Hot/Warm/Cold leads + Email to WhatsApp auto-fallback.</p></div>
       <div class="card"><h3>🤝 Purchase &amp; Sell Support</h3><p>Verified B2B buyer-seller matching aur safe deal coordination.</p></div>
     </div>
+
     <div class="glass-box" id="connectBox" style="border-color:#1e293b;">
       <h2 style="margin-bottom:8px;">📩 Start Your Project / Business Inquiry</h2>
       <form id="inquiryForm">
         <input type="text" id="name" placeholder="Aapka Naam / Company Name" required />
-        <input type="text" id="contact" placeholder="WhatsApp Number ya Email" required />
+        <input type="text" id="contact" placeholder="Email ya WhatsApp Number" required />
         <select id="lead_type">
           <option value="BUYER">Product / Service Chahiye (AI, Web/App, Automation)</option>
           <option value="SELLER">Main Seller / Supplier hoon (Purchase-Sell Support)</option>
@@ -131,12 +145,34 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     function rsz(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}window.addEventListener('resize',rsz);rsz();
     for(let i=0;i<32;i++)pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6});
     function anim(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<pts.length;i++){let p=pts[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(p.x,p.y,1.8,0,Math.PI*2);ctx.fill();for(let j=i+1;j<pts.length;j++){let p2=pts[j],d=Math.hypot(p.x-p2.x,p.y-p2.y);if(d<125){ctx.strokeStyle=`rgba(52,211,153,${1-d/125})`;ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}}}requestAnimationFrame(anim);}anim();
-    const phrases=["We Build AI & Automation.","We Build Websites & Apps.","We Power Smart CRM.","We Scale Purchase & Sell Trade."];let pI=0,cI=0,dl=false;
+
+    const phrases=["We Build AI & Automation.","We Build Websites & Apps.","We Close Deals Automatically.","We Scale Purchase & Sell Trade."];let pI=0,cI=0,dl=false;
     function typ(){const c=phrases[pI],e=document.getElementById('typedText');if(!dl){e.textContent=c.slice(0,++cI);if(cI===c.length){dl=true;setTimeout(typ,1500);return;}}else{e.textContent=c.slice(0,--cI);if(cI===0){dl=false;pI=(pI+1)%phrases.length;}}setTimeout(typ,dl?35:65);}typ();
+
     async function loadTelemetry(){try{const r=await fetch('/public/telemetry'),d=await r.json();document.getElementById('statAgents').textContent=d.active_agents??0;document.getElementById('statGov').textContent=d.governance_checks??0;document.getElementById('statHealed').textContent=d.healed_bugs??0;document.getElementById('statOpps').textContent=d.opportunities_found??0;}catch(e){}}loadTelemetry();
-    const logs=["> [Node 1] Live Opportunity / Client Signal detected...","> [Node 2] SHA-256 Anti-Duplication: Unique ✓","> [Node 3] Indian Governance (DPDP Act & Ethics): APPROVED ✓","> [Node 4] AI Matchmaker & Clone Agent executing task...","> [Node 5] Smart CRM + WhatsApp + UPI Invoice ready ✓","> [Node 6] Sentinel Watchdog: 100% Self-Healed & Live! 🚀"];let pipeRun=false;
-    function runPipelineDemo(){if(pipeRun)return;pipeRun=true;for(let i=0;i<6;i++)document.getElementById('n'+i).className='node';let s=0;const iv=setInterval(()=>{if(s>0)document.getElementById('n'+(s-1)).className='node done';if(s<6){document.getElementById('n'+s).className='node active';document.getElementById('pipeLog').textContent=logs[s];s++;}else{clearInterval(iv);pipeRun=false;}},700);}
+
+    async function loadShowcase(){
+      try{
+        const r=await fetch('/public/showcase'),d=await r.json(),el=document.getElementById('mediaShowcase');
+        el.innerHTML='';
+        const arr=d.campaigns||[];
+        if(!arr.length){const c=document.createElement('div');c.className='media-card';c.textContent='AI Media Studio ready — Auto-Pilot chalte hi live campaigns yahan dikhengi.';el.appendChild(c);return;}
+        arr.forEach(m=>{
+          const c=document.createElement('div');c.className='media-card';
+          const tag=document.createElement('span');tag.className='m-tag';tag.textContent=m.platform||'Social AI';
+          const h=document.createElement('h4');h.style.color='#f8fafc';h.style.marginBottom='6px';h.textContent=m.title;
+          const hk=document.createElement('p');hk.style.fontSize='12.5px';hk.style.color='#34d399';hk.textContent='🔥 Hook: '+m.hook;
+          const sc=document.createElement('p');sc.style.fontSize='12px';sc.style.color='#94a3b8';sc.style.marginTop='6px';sc.textContent=(m.script_body||'').slice(0,150)+'...';
+          c.appendChild(tag);c.appendChild(h);c.appendChild(hk);c.appendChild(sc);el.appendChild(c);
+        });
+      }catch(e){}
+    }
+    loadShowcase();
+
+    const logs=["> [Node 1] Live Opportunity & Lead Signal detected...","> [Node 2] SHA-256 Anti-Duplication: Unique ✓","> [Node 3] Indian Governance (DPDP Act & Ethics): APPROVED ✓","> [Node 4] Auto Email Pitch -> Day 2/5 Follow-up -> WA Fallback ✓","> [Node 5] AI Media Studio generating Viral Script & Creative ✓","> [Node 6] UPI/Bank Invoice + Auto Wallet Split ready ✓","> [Node 7] Sentinel Watchdog: 100% Self-Healed & Live! 🚀"];let pipeRun=false;
+    function runPipelineDemo(){if(pipeRun)return;pipeRun=true;for(let i=0;i<7;i++)document.getElementById('n'+i).className='node';let s=0;const iv=setInterval(()=>{if(s>0)document.getElementById('n'+(s-1)).className='node done';if(s<7){document.getElementById('n'+s).className='node active';document.getElementById('pipeLog').textContent=logs[s];s++;}else{clearInterval(iv);pipeRun=false;}},650);}
     setTimeout(runPipelineDemo,1200);
+
     function fillDemo(t){document.getElementById('ideaInput').value=t;}
     async function runEvaluator(){const idea=document.getElementById('ideaInput').value.trim(),err=document.getElementById('evalErr'),btn=document.getElementById('evalBtn'),box=document.getElementById('aiResult');err.textContent='';if(idea.length<8){err.textContent='Kam se kam 8 letters likhein.';return;}btn.disabled=true;btn.textContent='🧠 AI Analyze Kar Raha Hai...';box.style.display='none';runPipelineDemo();try{const r=await fetch('/public/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business_idea:idea})}),d=await r.json();if(!r.ok)err.textContent='⚠️ '+(d.detail||'Error');else{document.getElementById('resCategory').textContent=d.category||'AI Solution';const sc=Math.min(100,Math.max(50,parseInt(d.growth_score||88)));document.getElementById('resScore').textContent='Growth Score: '+sc+'/100';document.getElementById('resSummary').textContent=d.summary||'';document.getElementById('resTime').textContent=d.launch_time||'7-14 Days';const ul=document.getElementById('resSteps');ul.innerHTML='';(d.steps||[]).forEach(x=>{const li=document.createElement('li');li.textContent=x;ul.appendChild(li);});box.style.display='block';setTimeout(()=>{document.getElementById('scoreBar').style.width=sc+'%';},100);loadTelemetry();}}catch(e){err.textContent='❌ Server error.';}btn.disabled=false;btn.textContent='⚡ Evaluate With aIValue8 AI';}
     function sendPlanToForm(){document.getElementById('requirement').value=`[${document.getElementById('resCategory').textContent}] ${document.getElementById('ideaInput').value.trim()}`;document.getElementById('connectBox').scrollIntoView({behavior:'smooth'});document.getElementById('name').focus();}
@@ -155,7 +191,7 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
     body{background:#020617;color:#e2e8f0;padding:16px;}
-    .wrap{max-width:920px;margin:0 auto;}
+    .wrap{max-width:940px;margin:0 auto;}
     .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
     .brand{display:flex;align-items:center;gap:10px;}
     .brand img{width:34px;height:34px;border-radius:8px;}
@@ -164,7 +200,7 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
     .box h3{font-size:15.5px;margin-bottom:10px;color:#f8fafc;}
     input,textarea{width:100%;background:#020617;color:#fff;border:1px solid #334155;border-radius:8px;padding:10px;margin-bottom:10px;font-size:14px;}
     button{background:#2563eb;color:#fff;border:none;padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;margin:0 6px 6px 0;font-size:13px;}
-    button.green{background:#059669;} button.cyan{background:#0284c7;}
+    button.green{background:#059669;} button.cyan{background:#0284c7;} button.purple{background:#7c3aed;}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
     .w-card{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;}
     .w-card .amt{font-size:20px;font-weight:800;color:#34d399;margin-top:4px;}
@@ -183,13 +219,28 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
     </div>
     <div id="dash" class="hidden">
       <div class="box">
-        <h3>⚡ Quick AI Controls</h3>
-        <button onclick="runCmd('/hunter/scan','Scanning live market...')">🌍 Run Opportunity Scan</button>
-        <button class="green" onclick="runCmd('/hunter/daily-venture','Creating Daily Venture...')">💡 Generate Daily Venture</button>
-        <button class="cyan" onclick="runCmd('/trade/match','Matching Buyers & Sellers...')">🤝 Run Buyer-Seller Match</button>
+        <h3>🤖 Master Auto-Pilot &amp; Quick Controls</h3>
+        <button class="purple" onclick="runCmd('/autopilot/run','Running Full Daily Auto-Pilot...')">🤖 Run Full Auto-Pilot</button>
+        <button onclick="runCmd('/hunter/scan','Scanning live market...')">🌍 Opportunity Scan</button>
+        <button class="green" onclick="runCmd('/hunter/daily-venture','Creating Daily Venture...')">💡 Daily Venture</button>
+        <button class="cyan" onclick="runCmd('/trade/match','Matching Buyers & Sellers...')">🤝 Trade Match</button>
+        <button onclick="runCmd('/outreach/run','Running Email/WA Closer...')">📧 Email/WA Closer</button>
+        <button class="green" onclick="runCmd('/media/create','Generating Viral Media Campaign...')">🎬 Create Media Post</button>
         <div id="cmdRes" class="item hidden"></div>
       </div>
+
       <div class="box"><h3>💰 Treasury &amp; Wallets</h3><div id="wGrid" class="grid"></div></div>
+
+      <div class="box">
+        <h3>🧬 Clone Agent Factory (Create &amp; Run Sub-Agents)</h3>
+        <input id="agName" placeholder="Agent Name (e.g. Marketing_Clone_02)" />
+        <input id="agDept" placeholder="Department (e.g. Marketing, Sales, Legal)" />
+        <textarea id="agRole" rows="2" placeholder="Role Prompt (e.g. Tum Instagram Reels ke viral hooks likhte ho)"></textarea>
+        <button class="purple" onclick="spawnAgent()">🧬 Spawn Clone Agent</button>
+        <div id="agRes" class="item hidden"></div>
+        <div id="agList"></div>
+      </div>
+
       <div class="box">
         <h3>💳 Create Client Payment Link (Startup UPI / Bank)</h3>
         <input id="invName" placeholder="Client Name" />
@@ -200,16 +251,19 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
         <div id="invRes" class="item hidden"></div>
         <div id="invList"></div>
       </div>
+
       <div class="box">
         <h3>🧠 Talk to aIValue8 CEO</h3>
         <textarea id="ceoQ" rows="2" placeholder="CEO se koi sawal ya command poochhein..."></textarea>
         <button onclick="askCeo()">Send to CEO</button>
         <div id="ceoA" class="item hidden"></div>
       </div>
+
+      <div class="box"><h3>🎬 Media &amp; Content Campaigns</h3><div id="mediaList"></div></div>
       <div class="box"><h3>🌍 Opportunities &amp; Daily Ventures</h3><div id="oppList"></div></div>
       <div class="box"><h3>🤝 Trade Matches</h3><div id="matchList"></div></div>
-      <div class="box"><h3>🧬 Active Clone Agents</h3><div id="agList"></div></div>
-      <div class="box"><h3>📋 Recent CRM Leads</h3><div id="leadList"></div></div>
+      <div class="box"><h3>📋 Recent CRM Leads (Stage 0-4)</h3><div id="leadList"></div></div>
+      <div class="box"><h3>📱 Phone Vision Evaluations</h3><div id="visList"></div></div>
       <div class="box"><h3>🛡️ Sentinel Self-Healing Logs</h3><div id="logList"></div></div>
     </div>
   </div>
@@ -224,17 +278,20 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
         const wg=document.getElementById('wGrid');wg.innerHTML='';
         (d.wallets||[]).forEach(w=>{const c=document.createElement('div');c.className='w-card';const t=document.createElement('div');t.style.fontSize='12px';t.style.color='#94a3b8';t.textContent=w.display_name+' ('+w.allocation_percent+'%)';const a=document.createElement('div');a.className='amt';a.textContent='₹'+w.balance_inr;c.appendChild(t);c.appendChild(a);wg.appendChild(c);});
         renderInvoices(d.recent_invoices||[]);
+        renderList('mediaList',d.media_campaigns,m=>`[${m.platform}] ${m.title} | Hook: ${m.hook} | Prompt: ${m.visual_prompt}`,'Abhi koi media campaign nahi hai.');
         renderList('oppList',d.recent_opportunities,o=>`[${o.score}/100 | ${o.category}] ${o.title} — ${o.action_plan}`,'Abhi koi opportunity scan nahi hui.');
-        renderList('matchList',d.trade_matches,m=>`[${m.match_score}%] ${m.buyer_name} ↔️ ${m.seller_name} | ${m.item_summary} | Pitch: ${m.whatsapp_pitch}`,'Abhi koi match nahi hai.');
+        renderList('matchList',d.trade_matches,m=>`[${m.match_score}%] ${m.buyer_name} ↔️ ${m.seller_name} | ${m.item_summary}`,'Abhi koi match nahi hai.');
         renderList('agList',d.clone_agents,a=>`${a.agent_name} [${a.department}] — ${a.status} (Tasks: ${a.tasks_completed})`,'Koi clone agent nahi.');
         renderLeads(d.recent_leads||[]);
+        renderList('visList',d.vision_evals,v=>`[${v.eval_type}] ${v.filename} (₹${v.estimated_value_inr}) — ${v.summary}`,'Abhi koi phone scan nahi hua.');
         renderList('logList',d.sentinel_logs,s=>`[${s.healed?'HEALED':'ALERT'}] ${s.module}: ${(s.error_text||'').slice(0,120)}`,'Koi error nahi.');
       }catch(e){err.textContent='❌ Server connect error.';}
     }
     function renderInvoices(arr){const el=document.getElementById('invList');el.innerHTML='';arr.forEach(inv=>{const d=document.createElement('div');d.className='item';const txt=document.createElement('span');txt.textContent=`[${inv.status}] ${inv.invoice_id} | ${inv.client_name} | ₹${inv.amount_inr} | UTR: ${inv.utr_number||'-'} `;d.appendChild(txt);const lnk=document.createElement('a');lnk.href='/pay/'+inv.invoice_id;lnk.target='_blank';lnk.textContent='[Open Link] ';d.appendChild(lnk);if(inv.status!=='PAID'){const b=document.createElement('button');b.className='green';b.style.padding='4px 10px';b.textContent='✅ Verify & Split';b.onclick=async()=>{await fetch('/invoices/'+inv.invoice_id+'/approve',{method:'POST',headers:{'x-admin-key':key}});loadDash();};d.appendChild(b);}el.appendChild(d);});}
-    function renderLeads(arr){const el=document.getElementById('leadList');el.innerHTML='';if(!arr.length){const d=document.createElement('div');d.className='item';d.textContent='Abhi koi lead nahi.';el.appendChild(d);return;}arr.forEach(l=>{const d=document.createElement('div');d.className='item';const s=document.createElement('span');s.textContent=`[${l.temperature}] ${l.lead_name} (${l.contact}) — ${l.requirement} `;d.appendChild(s);const dig=(l.contact||'').replace(/\\D/g,'');if(dig.length>=10){const num=dig.length===10?'91'+dig:dig;const a=document.createElement('a');a.href=`https://wa.me/${num}?text=${encodeURIComponent('Namaste '+l.lead_name+', aIValue8 Corporation se sampark kar rahe hain.')}`;a.target='_blank';a.textContent='[💬 WhatsApp]';d.appendChild(a);}el.appendChild(d);});}
+    function renderLeads(arr){const el=document.getElementById('leadList');el.innerHTML='';if(!arr.length){const d=document.createElement('div');d.className='item';d.textContent='Abhi koi lead nahi.';el.appendChild(d);return;}arr.forEach(l=>{const d=document.createElement('div');d.className='item';const s=document.createElement('span');s.textContent=`[${l.temperature}|Stage:${l.outreach_stage||0}] ${l.lead_name} (${l.contact}) — ${l.requirement} `;d.appendChild(s);const dig=(l.contact||'').replace(/\\D/g,'');if(dig.length>=10){const num=dig.length===10?'91'+dig:dig;const a=document.createElement('a');a.href=`https://wa.me/${num}?text=${encodeURIComponent('Namaste '+l.lead_name+', aIValue8 Corporation se sampark kar rahe hain.')}`;a.target='_blank';a.textContent='[💬 WhatsApp]';d.appendChild(a);}el.appendChild(d);});}
     function renderList(id,arr,fmt,empty){const el=document.getElementById(id);el.innerHTML='';if(!arr||!arr.length){const d=document.createElement('div');d.className='item';d.textContent=empty;el.appendChild(d);return;}arr.forEach(x=>{const d=document.createElement('div');d.className='item';d.textContent=fmt(x);el.appendChild(d);});}
     async function runCmd(ep,wait){const b=document.getElementById('cmdRes');b.classList.remove('hidden');b.textContent=wait;const r=await fetch(ep,{method:'POST',headers:{'x-admin-key':key}});b.textContent=JSON.stringify(await r.json(),null,2);loadDash();}
+    async function spawnAgent(){const b=document.getElementById('agRes');b.classList.remove('hidden');b.textContent='Spawning...';const r=await fetch('/agent/spawn',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({agent_name:document.getElementById('agName').value,department:document.getElementById('agDept').value,role_prompt:document.getElementById('agRole').value})});b.textContent=JSON.stringify(await r.json(),null,2);loadDash();}
     async function makeInvoice(){const b=document.getElementById('invRes');b.classList.remove('hidden');b.textContent='Creating link...';const r=await fetch('/invoices/create',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({client_name:document.getElementById('invName').value,client_contact:document.getElementById('invContact').value,description:document.getElementById('invDesc').value,amount_inr:parseFloat(document.getElementById('invAmt').value)})});const d=await r.json();b.textContent=d.pay_path?`✅ Link Ready: ${location.origin}${d.pay_path}`:JSON.stringify(d);loadDash();}
     async function askCeo(){const q=document.getElementById('ceoQ').value.trim();if(!q)return;const b=document.getElementById('ceoA');b.classList.remove('hidden');b.textContent='Soch raha hai...';const r=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_message:q,source:'panel'})});const d=await r.json();b.textContent=d.reply||d.detail||'Error';}
   </script>

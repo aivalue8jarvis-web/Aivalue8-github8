@@ -1,12 +1,15 @@
 import os
 import json
 import time
+import base64
+from typing import Optional
 from collections import defaultdict
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from fastapi import FastAPI, HTTPException, Header, Depends, Request, Body
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
+from google.genai import types
 
 from database import init_db, get_connection
 from sentinel import smart_generate, diagnose_and_alert, send_alert, PRIMARY_MODEL
@@ -16,6 +19,9 @@ from treasury import record_and_distribute_earning, verify_gateway_signature
 from hunter import run_opportunity_scan, generate_daily_venture
 from payments import create_invoice, get_invoice, submit_utr_proof, approve_and_settle_invoice, render_invoice_html
 from matchmaker import run_buyer_seller_matchmaker
+from mailer import process_crm_outreach, handle_email_reply
+from media_factory import generate_media_campaign
+from autopilot import run_daily_autopilot
 from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
@@ -26,12 +32,12 @@ eval_rate_limit = defaultdict(list)
 async def lifespan(app: FastAPI):
     try:
         init_db()
-        print("✅ aIValue8 Mark-2.2 Database initialized.")
+        print("✅ aIValue8 Mark-3.0 Database initialized.")
     except Exception as e:
         diagnose_and_alert("startup.init_db", e)
     yield
 
-app = FastAPI(title="aIValue8 Corporation OS - Mark 2.2", lifespan=lifespan)
+app = FastAPI(title="aIValue8 Corporation OS - Mark 3.0", lifespan=lifespan)
 
 def verify_admin(x_admin_key: str = Header(default="")):
     if x_admin_key != ADMIN_API_KEY:
@@ -82,6 +88,21 @@ class InvoiceRequest(BaseModel):
 class UtrRequest(BaseModel):
     utr_number: str
 
+class EmailReplyRequest(BaseModel):
+    sender_email: str
+    subject: str = "Inquiry"
+    reply_text: str
+
+class MediaRequest(BaseModel):
+    topic: str = ""
+    platform: str = "Instagram Reels & YouTube Shorts"
+
+class VisionRequest(BaseModel):
+    filename: str
+    image_base64: str = ""
+    mime_type: str = "image/png"
+    note: str = ""
+
 CEO_PROMPT = "Tumhara naam 'aIValue8' hai. Tum ek Autonomous Indian AI Company ke CEO ho. Indian rules aur ethics ke saath practical Hinglish mein jawab do."
 
 @app.get("/", response_class=HTMLResponse)
@@ -108,7 +129,7 @@ def get_icon():
 
 @app.get("/health")
 def health_check():
-    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-2.2"}
+    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-3.0"}
 
 @app.get("/watchdog")
 def deep_watchdog():
@@ -144,6 +165,19 @@ def public_telemetry():
     except Exception:
         return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0}
 
+@app.get("/public/showcase")
+def public_showcase():
+    try:
+        conn = get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("SELECT title, platform, hook, script_body FROM media_campaigns ORDER BY id DESC LIMIT 3;")
+                return {"campaigns": cur.fetchall()}
+        finally:
+            conn.close()
+    except Exception:
+        return {"campaigns": []}
+
 @app.post("/public/evaluate")
 def public_evaluate(req: EvaluateRequest, request: Request):
     idea = req.business_idea.strip()
@@ -167,37 +201,61 @@ def public_inquiry(req: LeadRequest):
     req.source = "public-website"
     return _save_lead(req, always_alert=True)
 
+@app.post("/autopilot/run", dependencies=[Depends(verify_admin)])
+def api_autopilot():
+    return run_daily_autopilot()
+
 @app.post("/hunter/scan", dependencies=[Depends(verify_admin)])
 def api_hunter_scan():
-    try:
-        return run_opportunity_scan()
-    except Exception as e:
-        diagnose_and_alert("hunter.scan", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    return run_opportunity_scan()
 
 @app.post("/hunter/daily-venture", dependencies=[Depends(verify_admin)])
 def api_daily_venture():
-    try:
-        return generate_daily_venture()
-    except Exception as e:
-        diagnose_and_alert("hunter.daily_venture", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    return generate_daily_venture()
 
 @app.post("/trade/match", dependencies=[Depends(verify_admin)])
 def api_trade_match():
+    return run_buyer_seller_matchmaker()
+
+@app.post("/outreach/run", dependencies=[Depends(verify_admin)])
+def api_outreach():
+    return process_crm_outreach()
+
+@app.post("/outreach/email-reply", dependencies=[Depends(verify_admin)])
+def api_email_reply(req: EmailReplyRequest):
+    return handle_email_reply(req.sender_email, req.subject, req.reply_text)
+
+@app.post("/media/create", dependencies=[Depends(verify_admin)])
+def api_media(req: Optional[MediaRequest] = Body(default=None)):
+    topic = req.topic if req else ""
+    plat = req.platform if req else "Instagram Reels & YouTube Shorts"
+    return generate_media_campaign(topic, plat)
+
+@app.post("/vision/evaluate", dependencies=[Depends(verify_admin)])
+def api_vision_eval(req: VisionRequest):
     try:
-        return run_buyer_seller_matchmaker()
+        p_txt = f"Is screenshot/bill/product ({req.filename}) ko evaluate karo. Note: {req.note}. Reply ONLY JSON: {{\"eval_type\":\"BILL or ERROR or IDEA or PRODUCT\",\"summary\":\"2 line crisp Hinglish evaluation for voice\",\"estimated_value_inr\":0}}"
+        contents = p_txt
+        if req.image_base64:
+            img_part = types.Part.from_bytes(data=base64.b64decode(req.image_base64), mime_type=req.mime_type)
+            contents = [p_txt, img_part]
+        res = json.loads(smart_generate(contents, system_prompt="Tum aIValue8 Vision Evaluator ho.", json_mode=True))
+        conn = get_connection()
+        try:
+            with conn:
+                with conn.cursor() as cur:
+                    cur.execute("INSERT INTO vision_evaluations (filename,eval_type,summary,estimated_value_inr) VALUES (%s,%s,%s,%s);", (req.filename[:190], res.get("eval_type", "SCREENSHOT")[:45], res.get("summary", ""), float(res.get("estimated_value_inr", 0))))
+        finally:
+            conn.close()
+        send_alert(f"👁️ PHONE VISION [{res.get('eval_type')}]: {req.filename}\n{res.get('summary')}")
+        return {"status": "evaluated", "evaluation": res}
     except Exception as e:
-        diagnose_and_alert("trade.match", e)
+        diagnose_and_alert("vision.evaluate", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/invoices/create", dependencies=[Depends(verify_admin)])
 def api_create_invoice(req: InvoiceRequest):
-    try:
-        return create_invoice(req.client_name, req.client_contact, req.description, req.amount_inr)
-    except Exception as e:
-        diagnose_and_alert("invoices.create", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    return create_invoice(req.client_name, req.client_contact, req.description, req.amount_inr)
 
 @app.get("/pay/{invoice_id}", response_class=HTMLResponse)
 def view_invoice(invoice_id: str):
@@ -215,11 +273,7 @@ def api_submit_utr(invoice_id: str, req: UtrRequest):
 
 @app.post("/invoices/{invoice_id}/approve", dependencies=[Depends(verify_admin)])
 def api_approve_invoice(invoice_id: str):
-    try:
-        return approve_and_settle_invoice(invoice_id)
-    except Exception as e:
-        diagnose_and_alert("invoices.approve", e)
-        raise HTTPException(status_code=400, detail=str(e))
+    return approve_and_settle_invoice(invoice_id)
 
 @app.post("/webhooks/razorpay")
 async def razorpay_webhook(request: Request, x_razorpay_signature: str = Header(default="")):
@@ -300,7 +354,7 @@ def company_dashboard():
             wallets = cur.fetchall()
             cur.execute("SELECT agent_name, department, status, tasks_completed FROM agents_registry;")
             agents = cur.fetchall()
-            cur.execute("SELECT lead_name, contact, lead_type, temperature, requirement, created_at FROM crm_leads ORDER BY id DESC LIMIT 10;")
+            cur.execute("SELECT lead_name, contact, lead_type, temperature, outreach_stage, requirement, created_at FROM crm_leads ORDER BY id DESC LIMIT 10;")
             leads = cur.fetchall()
             cur.execute("SELECT title, category, score, action_plan, created_at FROM opportunities ORDER BY id DESC LIMIT 10;")
             opps = cur.fetchall()
@@ -308,8 +362,12 @@ def company_dashboard():
             invs = cur.fetchall()
             cur.execute("SELECT buyer_name, seller_name, item_summary, match_score, whatsapp_pitch FROM trade_matches ORDER BY id DESC LIMIT 10;")
             matches = cur.fetchall()
+            cur.execute("SELECT title, platform, hook, visual_prompt, created_at FROM media_campaigns ORDER BY id DESC LIMIT 6;")
+            media = cur.fetchall()
+            cur.execute("SELECT filename, eval_type, summary, estimated_value_inr, created_at FROM vision_evaluations ORDER BY id DESC LIMIT 6;")
+            visions = cur.fetchall()
             cur.execute("SELECT module, error_text, healed, created_at FROM sentinel_incidents ORDER BY id DESC LIMIT 5;")
             logs = cur.fetchall()
-        return {"company": "aIValue8 Corporation (Mark 2.2)", "wallets": wallets, "clone_agents": agents, "recent_leads": leads, "recent_opportunities": opps, "recent_invoices": invs, "trade_matches": matches, "sentinel_logs": logs}
+        return {"company": "aIValue8 Corporation (Mark 3.0)", "wallets": wallets, "clone_agents": agents, "recent_leads": leads, "recent_opportunities": opps, "recent_invoices": invs, "trade_matches": matches, "media_campaigns": media, "vision_evals": visions, "sentinel_logs": logs}
     finally:
         conn.close()
