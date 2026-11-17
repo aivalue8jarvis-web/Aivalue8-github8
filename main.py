@@ -1,7 +1,9 @@
 import os
 import json
+import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
@@ -15,6 +17,7 @@ from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+eval_rate_limit = defaultdict(list)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,9 +34,20 @@ def verify_admin(x_admin_key: str = Header(default="")):
     if x_admin_key != ADMIN_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid Admin Key")
 
+def check_public_rate_limit(ip: str, limit: int = 6, window_sec: int = 900) -> bool:
+    now = time.time()
+    eval_rate_limit[ip] = [t for t in eval_rate_limit[ip] if now - t < window_sec]
+    if len(eval_rate_limit[ip]) >= limit:
+        return False
+    eval_rate_limit[ip].append(now)
+    return True
+
 class ChatRequest(BaseModel):
     user_message: str
     source: str = "termux"
+
+class EvaluateRequest(BaseModel):
+    business_idea: str
 
 class SpawnAgentRequest(BaseModel):
     agent_name: str
@@ -96,6 +110,38 @@ def deep_watchdog():
     except Exception as e:
         diagnose_and_alert("watchdog", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/public/evaluate")
+def public_evaluate(req: EvaluateRequest, request: Request):
+    idea = req.business_idea.strip()
+    if len(idea) < 8:
+        raise HTTPException(status_code=400, detail="Kripya kam se kam 8 letters mein likhein.")
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+    if not check_public_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Thodi der baad try karein (Demo limit reached).")
+
+    gov = check_compliance("PUBLIC_EVALUATOR", idea)
+    if not gov["approved"]:
+        raise HTTPException(status_code=400, detail=gov["reason"])
+
+    try:
+        prompt = f"""
+        Visitor ne ye business/tech requirement di hai: "{idea}"
+        Tum 'aIValue8' ke Solutions Architect ho. Sirf AI, Business Growth, Website/App Build, Automation, CRM, ya Purchase/Sell Support ke perspective se Hinglish/English mein evaluate karo.
+        Reply ONLY valid JSON:
+        {{
+          "growth_score": 85,
+          "category": "AI + Web & CRM",
+          "summary": "2 line crisp encouraging evaluation",
+          "steps": ["Step 1", "Step 2", "Step 3"],
+          "launch_time": "7-14 Days"
+        }}
+        """
+        raw = smart_generate(prompt, system_prompt="Tum aIValue8 AI Evaluator ho.", json_mode=True)
+        return json.loads(raw.strip())
+    except Exception as e:
+        diagnose_and_alert("public.evaluate", e)
+        raise HTTPException(status_code=500, detail="AI abhi busy hai, kripya dubara try karein.")
 
 @app.post("/public/inquiry")
 def public_inquiry(req: LeadRequest):
