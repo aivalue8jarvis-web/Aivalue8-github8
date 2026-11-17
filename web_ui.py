@@ -3,16 +3,17 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>aIValue8 Corporation — Autonomous AI Ecosystem</title>
+  <title>aIValue8 Corporation — AI, Automation, Web/App, CRM &amp; Business Growth</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: #070b14; color: #e2e8f0; line-height: 1.6; padding: 20px; }
-    .container { max-width: 820px; margin: 0 auto; }
+    body { background: #050811; color: #e2e8f0; line-height: 1.6; padding: 18px; }
+    .container { max-width: 860px; margin: 0 auto; }
+    .logo-wrap { margin-bottom: 18px; }
+    .logo-wrap img { width: 100%; max-width: 630px; height: auto; display: block; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
     .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
-    h1 { font-size: 34px; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-    .subtitle { color: #94a3b8; font-size: 16px; margin-bottom: 28px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px; }
     .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 18px; }
     .card h3 { font-size: 16px; color: #f8fafc; margin-bottom: 6px; }
     .card p { font-size: 13px; color: #94a3b8; }
@@ -29,35 +30,36 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
 </head>
 <body>
   <div class="container">
-    <div class="badge"><span class="dot"></span> System Live &bull; Self-Healing Mark-1</div>
-    <h1>aIValue8 Corporation</h1>
-    <p class="subtitle">Ethical, Indian-Law Compliant &amp; Autonomous AI Business Ecosystem — Evaluating Opportunities, Building Solutions &amp; Growing Together.</p>
+    <div class="logo-wrap">
+      <img src="/logo.svg" alt="aIValue8 Corporation Logo" />
+    </div>
+    <div class="badge"><span class="dot"></span> System Live 24/7 &bull; Ethical Indian AI Governance</div>
 
     <div class="grid">
       <div class="card">
-        <h3>🧬 Multi-Agent Operations</h3>
-        <p>Specialized AI departments for research, sales coordination, content &amp; client support.</p>
+        <h3>🤖 AI &amp; Automation</h3>
+        <p>Custom AI agents, 24/7 automated workflows, and self-healing business operations.</p>
       </div>
       <div class="card">
-        <h3>⚖️ Indian Governance</h3>
-        <p>Built with strict DPDP Act 2023, RBI &amp; ethical anti-spam compliance guardrails.</p>
+        <h3>💻 Website &amp; App Build</h3>
+        <p>Fast, scalable websites, web apps, and custom business software tailored for growth.</p>
       </div>
       <div class="card">
-        <h3>🛡️ 24/7 Self-Healing Core</h3>
-        <p>Automated Sentinel monitoring with instant bug detection and zero-downtime recovery.</p>
+        <h3>🤝 CRM &amp; Purchase/Sell Support</h3>
+        <p>Smart buyer-seller matching, lead tracking, automated follow-ups &amp; deal closing.</p>
       </div>
     </div>
 
     <div class="form-box">
-      <h2>🤝 Connect / Business Inquiry</h2>
-      <small>Buyer, Seller, ya Partnership ke liye apni details bhejein—hamara AI aapko turant evaluate karke contact karega.</small>
+      <h2>📩 Connect / Business Inquiry</h2>
+      <small>Website/App banwana ho, AI Automation chahiye, ya Buyer/Seller Support — apni detail bhejein:</small>
       <form id="inquiryForm">
         <input type="text" id="name" placeholder="Aapka Naam / Company Name" required />
         <input type="text" id="contact" placeholder="WhatsApp Number ya Email" required />
         <select id="lead_type">
-          <option value="BUYER">Main Buyer hoon (Product/Service chahiye)</option>
+          <option value="BUYER">Product / Service Chahiye (Web, App, AI, Purchase)</option>
           <option value="SELLER">Main Seller / Supplier hoon</option>
-          <option value="PARTNER">Business Partnership / Collaboration</option>
+          <option value="PARTNER">Business Growth / Partnership</option>
         </select>
         <textarea id="requirement" rows="3" placeholder="Aapki requirement ya business idea likhein..." required></textarea>
         <button type="submit" id="submitBtn">Submit to aIValue8</button>
@@ -66,7 +68,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     </div>
 
     <footer>
-      Powered by <strong>aIValue8 OS</strong> &bull; <a href="/panel">Owner Control Room</a>
+      <strong>aIValue8 Corporation</strong> &bull; <a href="/icon.svg" target="_blank">App Icon</a> &bull; <a href="/logo.svg" target="_blank">HD Logo</a> &bull; <a href="/panel">Owner Control Room</a>
     </footer>
   </div>
 
@@ -117,11 +119,12 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>aIValue8 — Owner Control Room</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #020617; color: #e2e8f0; padding: 18px; }
     .wrap { max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 24px; color: #38bdf8; margin-bottom: 14px; }
+    h1 { font-size: 22px; color: #38bdf8; }
     .login-box, .section { background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
     input, textarea { width: 100%; background: #020617; color: #fff; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
     button { background: #2563eb; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
@@ -131,13 +134,18 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
     .item { background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; margin-top: 8px; font-size: 13px; }
     .hidden { display: none; }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .brand-mini { display: flex; align-items: center; gap: 10px; }
+    .brand-mini img { width: 34px; height: 34px; border-radius: 8px; }
     a { color: #94a3b8; font-size: 13px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top-bar">
-      <h1>👑 aIValue8 Owner Room</h1>
+      <div class="brand-mini">
+        <img src="/icon.svg" alt="icon" />
+        <h1>aIValue8 Owner Room</h1>
+      </div>
       <a href="/">← Public Page</a>
     </div>
 

@@ -2,7 +2,7 @@ import os
 import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
 
@@ -14,6 +14,7 @@ from treasury import record_and_distribute_earning
 from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -69,6 +70,14 @@ def public_home():
 @app.get("/panel", response_class=HTMLResponse)
 def owner_panel():
     return OWNER_PANEL_HTML
+
+@app.get("/logo.svg")
+def get_logo():
+    return FileResponse(os.path.join(BASE_DIR, "logo.svg"), media_type="image/svg+xml")
+
+@app.get("/icon.svg")
+def get_icon():
+    return FileResponse(os.path.join(BASE_DIR, "icon.svg"), media_type="image/svg+xml")
 
 @app.get("/health")
 def health_check():
