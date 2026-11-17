@@ -11,12 +11,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 PRIMARY_MODEL = "gemini-3.8-flash"
 FALLBACK_MODEL = "gemini-3.5-flash-lite"
-HEALING_CHAIN = [
-    "gemini-3.8-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
-]
+HEALING_CHAIN = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
 
 client = genai.Client(api_key=GEMINI_KEY) if GEMINI_KEY else None
 
@@ -26,7 +21,7 @@ def send_alert(message: str):
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
             requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": message[:4000]}, timeout=10)
         except Exception as e:
-            print(f"Telegram alert fail hua: {e}")
+            print(f"Telegram alert fail: {e}")
 
 def smart_generate(prompt: str, system_prompt: str = "", model: str = PRIMARY_MODEL, json_mode: bool = False) -> str:
     if not client:
@@ -45,12 +40,15 @@ def smart_generate(prompt: str, system_prompt: str = "", model: str = PRIMARY_MO
             res = client.models.generate_content(model=m, contents=prompt, config=config)
             if idx > 0:
                 log_incident("sentinel.smart_generate", str(last_err), f"Auto-healed using {m}", healed=True)
-            return res.text
+            txt = (res.text or "").strip()
+            if json_mode and txt.startswith("```"):
+                txt = txt.strip("`").removeprefix("json").strip()
+            return txt
         except Exception as err:
             last_err = err
             time.sleep(1)
 
-    log_incident("sentinel.smart_generate", str(last_err), "All models in healing chain failed", healed=False)
+    log_incident("sentinel.smart_generate", str(last_err), "All models failed", healed=False)
     send_alert(f"🚨 aIValue8 SENTINEL CRITICAL:\nAll models failed.\nLast error: {last_err}")
     raise last_err
 
@@ -75,11 +73,11 @@ def diagnose_and_alert(module: str, error_obj: Exception):
     try:
         if client:
             diagnosis = smart_generate(
-                f"Module '{module}' mein ye error aaya hai: {err_str}. 2 line mein root cause aur fix batao.",
-                system_prompt="Tum aIValue8 ke Head Sentinel (Bug Detector) ho.",
+                f"Module '{module}' mein ye error aaya: {err_str}. 2 line mein root cause aur fix batao.",
+                system_prompt="Tum aIValue8 ke Head Sentinel ho.",
                 model=FALLBACK_MODEL
             )
     except Exception:
         pass
     log_incident(module, err_str, diagnosis, healed=False)
-    send_alert(f"⚠️ aIValue8 Bug Detected [{module}]:\nError: {err_str}\n\n🔍 Sentinel Diagnosis:\n{diagnosis}")
+    send_alert(f"⚠️ aIValue8 Bug [{module}]:\nError: {err_str}\n\n🔍 Diagnosis:\n{diagnosis}")

@@ -19,46 +19,33 @@ def fetch_live_signals() -> list:
             if res.status_code == 200:
                 root = ET.fromstring(res.text)
                 for item in root.findall(".//item")[:5]:
-                    title_el = item.find("title")
-                    if title_el is not None and title_el.text:
-                        headlines.append(title_el.text.strip())
+                    t = item.find("title")
+                    if t is not None and t.text:
+                        headlines.append(t.text.strip())
         except Exception:
             continue
     return headlines[:8]
 
 def run_opportunity_scan() -> dict:
     signals = fetch_live_signals()
-    signals_text = "\n".join([f"- {s}" for s in signals]) if signals else "General Indian B2B, AI Automation, Website/App & Trading market."
-
+    sig_txt = "\n".join([f"- {s}" for s in signals]) if signals else "Indian B2B, AI Automation, Web/App & Trade."
     prompt = f"""
     In live Indian market signals ko padho:
-    {signals_text}
+    {sig_txt}
 
-    aIValue8 ke liye (AI, Web/App Build, Automation, CRM, ya B2B Purchase-Sell Support) 2 sabse practical aur ethical earning opportunities nikalo.
+    aIValue8 ke liye (AI, Web/App Build, Automation, CRM, ya Purchase-Sell Support) 2 best ethical opportunities nikalo.
     Reply ONLY valid JSON:
-    {{
-      "opportunities": [
-        {{
-          "title": "Short clear opportunity title",
-          "category": "B2B_SERVICE or AI_AUTOMATION or TRADE_SUPPORT",
-          "score": 88,
-          "action_plan": "2-line practical execution plan in Hinglish"
-        }}
-      ]
-    }}
+    {{"opportunities": [{{"title": "Title", "category": "B2B_SERVICE", "score": 88, "action_plan": "2-line Hinglish plan"}}]}}
     """
     raw = smart_generate(prompt, system_prompt="Tum aIValue8 ke Global Opportunity Hunter ho.", model=PRIMARY_MODEL, json_mode=True)
-    data = json.loads(raw.strip())
-    saved_items = []
-
+    data = json.loads(raw)
+    saved = []
     conn = get_connection()
     try:
         for opp in data.get("opportunities", []):
             title = opp.get("title", "").strip()
             plan = opp.get("action_plan", "").strip()
-            if not title:
-                continue
-            if not register_unique_or_reject("OPPORTUNITY", title, title):
+            if not title or not register_unique_or_reject("OPPORTUNITY", title, title):
                 continue
             gov = check_compliance("OPPORTUNITY", f"{title} | {plan}")
             if not gov["approved"]:
@@ -69,40 +56,30 @@ def run_opportunity_scan() -> dict:
                         "INSERT INTO opportunities (title, category, score, action_plan, source) VALUES (%s, %s, %s, %s, %s);",
                         (title[:240], opp.get("category", "GENERAL")[:50], int(opp.get("score", 80)), plan, "live-rss-hunter")
                     )
-            saved_items.append(opp)
+            saved.append(opp)
     finally:
         conn.close()
 
-    if saved_items:
-        msg = "\n".join([f"• [{o.get('score')}/100] {o.get('title')}\n  👉 {o.get('action_plan')}" for o in saved_items])
+    if saved:
+        msg = "\n".join([f"• [{o.get('score')}/100] {o.get('title')}\n  👉 {o.get('action_plan')}" for o in saved])
         send_alert(f"🌍 aIValue8 OPPORTUNITY HUNTER:\n{msg}")
-
-    return {"status": "scan_complete", "signals_analyzed": len(signals), "new_saved": len(saved_items), "opportunities": saved_items}
+    return {"status": "scan_complete", "signals_analyzed": len(signals), "new_saved": len(saved), "opportunities": saved}
 
 def generate_daily_venture() -> dict:
     prompt = """
-    aIValue8 Venture Lab ke liye AAJ ka ek bilkul naya, practical, low-investment aur high-margin Indian business idea banao
-    (Web/App, AI Automation, Micro-SaaS, ya B2B Purchase-Sell brokering se juda).
+    aIValue8 Venture Lab ke liye AAJ ka 1 naya practical, low-investment Indian business idea banao (Web/App, AI, CRM ya B2B Trade).
     Reply ONLY valid JSON:
-    {
-      "title": "Unique Venture Name & Idea",
-      "category": "DAILY_VENTURE",
-      "score": 90,
-      "action_plan": "Kaise start karein, pehla client kahan se aayega aur pricing kya rakhein (Hinglish mein)"
-    }
+    {"title": "Unique Venture Name", "category": "DAILY_VENTURE", "score": 90, "action_plan": "Start kaise karein & pricing (Hinglish)"}
     """
     raw = smart_generate(prompt, system_prompt="Tum aIValue8 ke Chief Venture Builder ho.", model=PRIMARY_MODEL, json_mode=True)
-    idea = json.loads(raw.strip())
-    title = idea.get("title", "Daily Venture Idea").strip()
+    idea = json.loads(raw)
+    title = idea.get("title", "Daily Venture").strip()
     plan = idea.get("action_plan", "").strip()
-
     if not register_unique_or_reject("DAILY_VENTURE", title, title):
         return {"status": "duplicate_skipped", "title": title}
-
     gov = check_compliance("DAILY_VENTURE", f"{title} | {plan}")
     if not gov["approved"]:
         return {"status": "blocked_by_governance", "reason": gov["reason"]}
-
     conn = get_connection()
     try:
         with conn:
@@ -113,6 +90,5 @@ def generate_daily_venture() -> dict:
                 )
     finally:
         conn.close()
-
-    send_alert(f"💡 aIValue8 DAILY VENTURE IDEA [{idea.get('score')}/100]:\n🚀 {title}\n\n📋 Plan:\n{plan}")
+    send_alert(f"💡 aIValue8 DAILY VENTURE [{idea.get('score')}/100]:\n🚀 {title}\n\n📋 Plan:\n{plan}")
     return {"status": "created", "venture": idea}

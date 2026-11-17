@@ -12,8 +12,10 @@ from database import init_db, get_connection
 from sentinel import smart_generate, diagnose_and_alert, send_alert, PRIMARY_MODEL
 from governance import check_compliance
 from cloner import register_unique_or_reject, spawn_clone_agent, run_clone_agent
-from treasury import record_and_distribute_earning
+from treasury import record_and_distribute_earning, verify_gateway_signature
 from hunter import run_opportunity_scan, generate_daily_venture
+from payments import create_invoice, get_invoice, submit_utr_proof, approve_and_settle_invoice, render_invoice_html
+from matchmaker import run_buyer_seller_matchmaker
 from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
@@ -24,18 +26,18 @@ eval_rate_limit = defaultdict(list)
 async def lifespan(app: FastAPI):
     try:
         init_db()
-        print("✅ aIValue8 Database & Wallets initialized.")
+        print("✅ aIValue8 Mark-2.2 Database initialized.")
     except Exception as e:
         diagnose_and_alert("startup.init_db", e)
     yield
 
-app = FastAPI(title="aIValue8 Corporation OS - Mark 2", lifespan=lifespan)
+app = FastAPI(title="aIValue8 Corporation OS - Mark 2.2", lifespan=lifespan)
 
 def verify_admin(x_admin_key: str = Header(default="")):
     if x_admin_key != ADMIN_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid Admin Key")
 
-def check_public_rate_limit(ip: str, limit: int = 6, window_sec: int = 900) -> bool:
+def check_rate(ip: str, limit: int = 6, window_sec: int = 900) -> bool:
     now = time.time()
     eval_rate_limit[ip] = [t for t in eval_rate_limit[ip] if now - t < window_sec]
     if len(eval_rate_limit[ip]) >= limit:
@@ -71,12 +73,16 @@ class EarningRequest(BaseModel):
     amount_inr: float
     source: str
 
-CEO_SYSTEM_PROMPT = """
-Tumhara naam 'aIValue8' hai. Tum ek Autonomous AI Company ke CEO ho.
-Tumhara kaam Indian kanoon aur ethics ke dayre mein rehkar business opportunities dhundhna,
-clone agents ko manage karna, bugs heal karna, aur owner + family ke liye sustainable kamai badhana hai.
-Jawab clear, practical aur Hinglish mein do.
-"""
+class InvoiceRequest(BaseModel):
+    client_name: str
+    client_contact: str = ""
+    description: str
+    amount_inr: float
+
+class UtrRequest(BaseModel):
+    utr_number: str
+
+CEO_PROMPT = "Tumhara naam 'aIValue8' hai. Tum ek Autonomous Indian AI Company ke CEO ho. Indian rules aur ethics ke saath practical Hinglish mein jawab do."
 
 @app.get("/", response_class=HTMLResponse)
 def public_home():
@@ -88,21 +94,21 @@ def owner_panel():
 
 @app.get("/logo.svg")
 def get_logo():
-    path = os.path.join(BASE_DIR, "logo.svg")
-    if not os.path.exists(path):
+    p = os.path.join(BASE_DIR, "logo.svg")
+    if not os.path.exists(p):
         raise HTTPException(status_code=404, detail="logo.svg not found")
-    return FileResponse(path, media_type="image/svg+xml")
+    return FileResponse(p, media_type="image/svg+xml")
 
 @app.get("/icon.svg")
 def get_icon():
-    path = os.path.join(BASE_DIR, "icon.svg")
-    if not os.path.exists(path):
+    p = os.path.join(BASE_DIR, "icon.svg")
+    if not os.path.exists(p):
         raise HTTPException(status_code=404, detail="icon.svg not found")
-    return FileResponse(path, media_type="image/svg+xml")
+    return FileResponse(p, media_type="image/svg+xml")
 
 @app.get("/health")
 def health_check():
-    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-2.1"}
+    return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-2.2"}
 
 @app.get("/watchdog")
 def deep_watchdog():
@@ -124,17 +130,17 @@ def public_telemetry():
         conn = get_connection()
         try:
             with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM agents_registry WHERE status = 'ACTIVE';")
-                agents = cur.fetchone()[0]
-                cur.execute("SELECT COUNT(*) FROM governance_logs WHERE is_approved = TRUE;")
-                gov = cur.fetchone()[0]
-                cur.execute("SELECT COUNT(*) FROM sentinel_incidents WHERE healed = TRUE;")
-                healed = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM agents_registry WHERE status='ACTIVE';")
+                ag = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM governance_logs WHERE is_approved=TRUE;")
+                gv = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM sentinel_incidents WHERE healed=TRUE;")
+                hl = cur.fetchone()[0]
                 cur.execute("SELECT COUNT(*) FROM opportunities;")
-                opps = cur.fetchone()[0]
+                op = cur.fetchone()[0]
         finally:
             conn.close()
-        return {"active_agents": agents, "governance_checks": gov, "healed_bugs": healed, "opportunities_found": opps}
+        return {"active_agents": ag, "governance_checks": gv, "healed_bugs": hl, "opportunities_found": op}
     except Exception:
         return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0}
 
@@ -142,30 +148,24 @@ def public_telemetry():
 def public_evaluate(req: EvaluateRequest, request: Request):
     idea = req.business_idea.strip()
     if len(idea) < 8:
-        raise HTTPException(status_code=400, detail="Kripya kam se kam 8 letters mein likhein.")
-    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
-    if not check_public_rate_limit(client_ip):
-        raise HTTPException(status_code=429, detail="Thodi der baad try karein (Demo limit reached).")
+        raise HTTPException(status_code=400, detail="Kam se kam 8 letters likhein.")
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+    if not check_rate(ip):
+        raise HTTPException(status_code=429, detail="Thodi der baad try karein.")
     gov = check_compliance("PUBLIC_EVALUATOR", idea)
     if not gov["approved"]:
         raise HTTPException(status_code=400, detail=gov["reason"])
     try:
-        prompt = f"""
-        Visitor ne ye business/tech requirement di hai: "{idea}"
-        Tum 'aIValue8' ke Solutions Architect ho. Sirf AI, Business Growth, Website/App Build, Automation, CRM, ya Purchase/Sell Support ke perspective se Hinglish/English mein evaluate karo.
-        Reply ONLY valid JSON:
-        {{"growth_score": 85, "category": "AI + Web & CRM", "summary": "2 line crisp evaluation", "steps": ["Step 1", "Step 2", "Step 3"], "launch_time": "7-14 Days"}}
-        """
-        raw = smart_generate(prompt, system_prompt="Tum aIValue8 AI Evaluator ho.", json_mode=True)
-        return json.loads(raw.strip())
+        prompt = f'Requirement: "{idea}". Evaluate strictly for AI, Growth, Web/App, Automation, CRM, or Trade Support. Reply ONLY JSON: {{"growth_score": 88, "category": "AI + Web & CRM", "summary": "2 line Hinglish insight", "steps": ["Step 1", "Step 2", "Step 3"], "launch_time": "7-14 Days"}}'
+        return json.loads(smart_generate(prompt, system_prompt="Tum aIValue8 Evaluator ho.", json_mode=True))
     except Exception as e:
         diagnose_and_alert("public.evaluate", e)
-        raise HTTPException(status_code=500, detail="AI abhi busy hai, kripya dubara try karein.")
+        raise HTTPException(status_code=500, detail="AI busy hai, dubara try karein.")
 
 @app.post("/public/inquiry")
 def public_inquiry(req: LeadRequest):
     req.source = "public-website"
-    return _process_and_save_lead(req, always_alert=True)
+    return _save_lead(req, always_alert=True)
 
 @app.post("/hunter/scan", dependencies=[Depends(verify_admin)])
 def api_hunter_scan():
@@ -183,6 +183,55 @@ def api_daily_venture():
         diagnose_and_alert("hunter.daily_venture", e)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/trade/match", dependencies=[Depends(verify_admin)])
+def api_trade_match():
+    try:
+        return run_buyer_seller_matchmaker()
+    except Exception as e:
+        diagnose_and_alert("trade.match", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/invoices/create", dependencies=[Depends(verify_admin)])
+def api_create_invoice(req: InvoiceRequest):
+    try:
+        return create_invoice(req.client_name, req.client_contact, req.description, req.amount_inr)
+    except Exception as e:
+        diagnose_and_alert("invoices.create", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/pay/{invoice_id}", response_class=HTMLResponse)
+def view_invoice(invoice_id: str):
+    inv = get_invoice(invoice_id)
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invoice nahi mili.")
+    return render_invoice_html(inv)
+
+@app.post("/pay/{invoice_id}/submit-utr")
+def api_submit_utr(invoice_id: str, req: UtrRequest):
+    try:
+        return submit_utr_proof(invoice_id, req.utr_number)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/invoices/{invoice_id}/approve", dependencies=[Depends(verify_admin)])
+def api_approve_invoice(invoice_id: str):
+    try:
+        return approve_and_settle_invoice(invoice_id)
+    except Exception as e:
+        diagnose_and_alert("invoices.approve", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/webhooks/razorpay")
+async def razorpay_webhook(request: Request, x_razorpay_signature: str = Header(default="")):
+    body = await request.body()
+    if not verify_gateway_signature(body, x_razorpay_signature):
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    data = json.loads(body.decode("utf-8"))
+    if data.get("event") == "payment.captured":
+        ent = data["payload"]["payment"]["entity"]
+        return record_and_distribute_earning(ent["id"], ent["amount"] / 100.0, "Razorpay Gateway")
+    return {"status": "ignored"}
+
 @app.post("/ask")
 def ask_ceo(req: ChatRequest):
     try:
@@ -190,78 +239,57 @@ def ask_ceo(req: ChatRequest):
         try:
             with conn.cursor() as cur:
                 cur.execute("SELECT user_msg, ai_reply FROM chat_history ORDER BY id DESC LIMIT 5;")
-                history = cur.fetchall()[::-1]
-            context = "\n".join([f"Owner: {h[0]}\naIValue8: {h[1]}" for h in history])
-            prompt = f"Purani baatein:\n{context}\n\nOwner: {req.user_message}"
-            reply = smart_generate(prompt, system_prompt=CEO_SYSTEM_PROMPT, model=PRIMARY_MODEL)
+                hist = cur.fetchall()[::-1]
+            ctx = "\n".join([f"Owner: {h[0]}\naIValue8: {h[1]}" for h in hist])
+            reply = smart_generate(f"Purani baatein:\n{ctx}\n\nOwner: {req.user_message}", system_prompt=CEO_PROMPT, model=PRIMARY_MODEL)
             with conn:
                 with conn.cursor() as cur:
-                    cur.execute("INSERT INTO chat_history (user_msg, ai_reply) VALUES (%s, %s);", (req.user_message, reply))
+                    cur.execute("INSERT INTO chat_history (user_msg, ai_reply) VALUES (%s,%s);", (req.user_message, reply))
             return {"reply": reply}
         finally:
             conn.close()
     except Exception as e:
         diagnose_and_alert("ask_ceo", e)
-        raise HTTPException(status_code=500, detail="Error processing request")
+        raise HTTPException(status_code=500, detail="Error")
 
 @app.post("/agent/spawn", dependencies=[Depends(verify_admin)])
-def api_spawn_agent(req: SpawnAgentRequest):
-    try:
-        return spawn_clone_agent(req.agent_name, req.department, req.role_prompt)
-    except Exception as e:
-        diagnose_and_alert("agent.spawn", e)
-        raise HTTPException(status_code=500, detail=str(e))
+def api_spawn(req: SpawnAgentRequest):
+    return spawn_clone_agent(req.agent_name, req.department, req.role_prompt)
 
 @app.post("/agent/run", dependencies=[Depends(verify_admin)])
-def api_run_agent(req: RunAgentRequest):
-    try:
-        return run_clone_agent(req.agent_name, req.task_input)
-    except Exception as e:
-        diagnose_and_alert("agent.run", e)
-        raise HTTPException(status_code=500, detail=str(e))
+def api_run(req: RunAgentRequest):
+    return run_clone_agent(req.agent_name, req.task_input)
 
-def _process_and_save_lead(req: LeadRequest, always_alert: bool = False):
+def _save_lead(req: LeadRequest, always_alert: bool = False):
     try:
         if not register_unique_or_reject("CRM_LEAD", req.contact, req.lead_name):
-            return {"status": "duplicate_skipped", "message": "Ye contact pehle se CRM mein maujood hai."}
+            return {"status": "duplicate_skipped", "message": "Ye contact pehle se CRM mein hai."}
         gov = check_compliance("CRM_LEAD", f"{req.lead_name} | {req.requirement}")
         if not gov["approved"]:
             return {"status": "blocked_by_governance", "reason": gov["reason"]}
-        temp_raw = smart_generate(
-            f"Lead requirement: '{req.requirement}'. Classify urgency in JSON: {{\"temperature\": \"HOT\" or \"WARM\" or \"COLD\", \"next_action\": \"short action\"}}",
-            system_prompt="Tum Sales CRM Manager ho.",
-            json_mode=True
-        )
-        temp_data = json.loads(temp_raw.strip())
-        temperature = temp_data.get("temperature", "COLD").upper()
+        t_data = json.loads(smart_generate(f"Requirement: '{req.requirement}'. Reply JSON: {{\"temperature\":\"HOT\" or \"WARM\" or \"COLD\",\"next_action\":\"short action\"}}", system_prompt="Sales CRM Manager", json_mode=True))
+        temp = t_data.get("temperature", "COLD").upper()
         conn = get_connection()
         try:
             with conn:
                 with conn.cursor() as cur:
-                    cur.execute("""
-                        INSERT INTO crm_leads (lead_name, contact, lead_type, temperature, requirement, source)
-                        VALUES (%s, %s, %s, %s, %s, %s);
-                    """, (req.lead_name, req.contact, req.lead_type, temperature, req.requirement, req.source))
+                    cur.execute("INSERT INTO crm_leads (lead_name,contact,lead_type,temperature,requirement,source) VALUES (%s,%s,%s,%s,%s,%s);", (req.lead_name, req.contact, req.lead_type, temp, req.requirement, req.source))
         finally:
             conn.close()
-        if always_alert or temperature == "HOT":
-            send_alert(f"📩 NEW LEAD [{temperature}] ({req.source})\nName: {req.lead_name}\nContact: {req.contact}\nType: {req.lead_type}\nNeed: {req.requirement}\nAction: {temp_data.get('next_action')}")
-        return {"status": "saved", "temperature": temperature, "next_action": temp_data.get("next_action")}
+        if always_alert or temp == "HOT":
+            send_alert(f"📩 NEW LEAD [{temp}] ({req.source})\nName: {req.lead_name}\nContact: {req.contact}\nNeed: {req.requirement}")
+        return {"status": "saved", "temperature": temp, "next_action": t_data.get("next_action")}
     except Exception as e:
         diagnose_and_alert("crm.add_lead", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/crm/add-lead", dependencies=[Depends(verify_admin)])
 def add_crm_lead(req: LeadRequest):
-    return _process_and_save_lead(req, always_alert=False)
+    return _save_lead(req, always_alert=False)
 
 @app.post("/treasury/record-earning", dependencies=[Depends(verify_admin)])
-def api_record_earning(req: EarningRequest):
-    try:
-        return record_and_distribute_earning(req.reference_id, req.amount_inr, req.source)
-    except Exception as e:
-        diagnose_and_alert("treasury.record_earning", e)
-        raise HTTPException(status_code=500, detail=str(e))
+def api_earn(req: EarningRequest):
+    return record_and_distribute_earning(req.reference_id, req.amount_inr, req.source)
 
 @app.get("/dashboard", dependencies=[Depends(verify_admin)])
 def company_dashboard():
@@ -272,22 +300,16 @@ def company_dashboard():
             wallets = cur.fetchall()
             cur.execute("SELECT agent_name, department, status, tasks_completed FROM agents_registry;")
             agents = cur.fetchall()
-            cur.execute("SELECT temperature, COUNT(*) as total FROM crm_leads GROUP BY temperature;")
-            leads_summary = cur.fetchall()
             cur.execute("SELECT lead_name, contact, lead_type, temperature, requirement, created_at FROM crm_leads ORDER BY id DESC LIMIT 10;")
-            recent_leads = cur.fetchall()
+            leads = cur.fetchall()
             cur.execute("SELECT title, category, score, action_plan, created_at FROM opportunities ORDER BY id DESC LIMIT 10;")
-            recent_opportunities = cur.fetchall()
+            opps = cur.fetchall()
+            cur.execute("SELECT invoice_id, client_name, amount_inr, status, utr_number, created_at FROM invoices ORDER BY created_at DESC LIMIT 10;")
+            invs = cur.fetchall()
+            cur.execute("SELECT buyer_name, seller_name, item_summary, match_score, whatsapp_pitch FROM trade_matches ORDER BY id DESC LIMIT 10;")
+            matches = cur.fetchall()
             cur.execute("SELECT module, error_text, healed, created_at FROM sentinel_incidents ORDER BY id DESC LIMIT 5;")
-            recent_incidents = cur.fetchall()
-        return {
-            "company": "aIValue8 Corporation (Mark 2.1)",
-            "wallets": wallets,
-            "clone_agents": agents,
-            "crm_leads": leads_summary,
-            "recent_leads": recent_leads,
-            "recent_opportunities": recent_opportunities,
-            "sentinel_logs": recent_incidents
-        }
+            logs = cur.fetchall()
+        return {"company": "aIValue8 Corporation (Mark 2.2)", "wallets": wallets, "clone_agents": agents, "recent_leads": leads, "recent_opportunities": opps, "recent_invoices": invs, "trade_matches": matches, "sentinel_logs": logs}
     finally:
         conn.close()
