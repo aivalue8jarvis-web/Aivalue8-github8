@@ -131,6 +131,16 @@ def get_icon():
 def health_check():
     return {"status": "alive", "system": "aIValue8 Corporation OS", "version": "Mark-3.0"}
 
+@app.get("/telegram/test", dependencies=[Depends(verify_admin)])
+def test_telegram():
+    import requests as rq
+    tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    cid = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if not tok or not cid:
+        return {"ok": False, "token_set": bool(tok), "chat_id_set": bool(cid), "error": "Render Environment mein TELEGRAM_BOT_TOKEN ya TELEGRAM_CHAT_ID missing hai!"}
+    r = rq.post(f"https://api.telegram.org/bot{tok}/sendMessage", json={"chat_id": cid, "text": "✅ aIValue8 Telegram Alert Working!"}, timeout=10)
+    return {"token_len": len(tok), "chat_id": cid, "telegram_response": r.json()}
+
 @app.get("/watchdog")
 def deep_watchdog():
     try:
