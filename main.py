@@ -381,3 +381,15 @@ def company_dashboard():
         return {"company": "aIValue8 Corporation (Mark 3.0)", "wallets": wallets, "clone_agents": agents, "recent_leads": leads, "recent_opportunities": opps, "recent_invoices": invs, "trade_matches": matches, "media_campaigns": media, "vision_evals": visions, "sentinel_logs": logs}
     finally:
         conn.close()
+
+
+from telegram_bot import handle_telegram_update, activate_telegram_webhook
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    data = await request.json()
+    return handle_telegram_update(data)
+
+@app.get("/telegram/activate-webhook", dependencies=[Depends(verify_admin)])
+def api_activate_tg():
+    return activate_telegram_webhook()
