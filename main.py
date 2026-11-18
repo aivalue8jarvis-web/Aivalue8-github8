@@ -239,7 +239,7 @@ def api_vision_eval(req: VisionRequest):
         if req.image_base64:
             img_part = types.Part.from_bytes(data=base64.b64decode(req.image_base64), mime_type=req.mime_type)
             contents = [p_txt, img_part]
-        res = json.loads(smart_generate(contents, system_prompt="Tum aIValue8 Vision Evaluator ho.", json_mode=True))
+        res = json.loads(smart_generate(contents, system_prompt="Tum aIValue8 Vision Evaluator ho.", model="gemini-3.5-flash-lite", json_mode=True))
         conn = get_connection()
         try:
             with conn:
