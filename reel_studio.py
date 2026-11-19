@@ -27,13 +27,12 @@ def _make_slide(path: str, badge: str, body: str, step_idx: int, total: int = 4)
     img = Image.new("RGB", (w, h), (5, 10, 24))
     draw = ImageDraw.Draw(img)
 
-    # Neon border & header bar
     draw.rounded_rectangle([28, 36, w - 28, h - 36], radius=34, outline=(56, 189, 248), width=4)
     draw.rounded_rectangle([54, 72, 370, 126], radius=24, fill=(15, 23, 42), outline=(52, 211, 153), width=2)
 
     try:
         f_small = ImageFont.load_default(size=24)
-        f_title = ImageFont.load_default(size=46)
+        f_title = ImageFont.load_default(size=44)
         f_foot = ImageFont.load_default(size=26)
     except Exception:
         f_small = f_title = f_foot = ImageFont.load_default()
@@ -42,10 +41,10 @@ def _make_slide(path: str, badge: str, body: str, step_idx: int, total: int = 4)
 
     lines = []
     for para in body.split("\n"):
-        lines.extend(textwrap.wrap(para.strip(), width=21) or [""])
+        lines.extend(textwrap.wrap(para.strip(), width=20) or [""])
     lines = lines[:9]
 
-    line_h = 62
+    line_h = 60
     start_y = max(240, (h - len(lines) * line_h) // 2)
     for idx, line in enumerate(lines):
         bbox = draw.textbbox((0, 0), line, font=f_title)
@@ -53,7 +52,6 @@ def _make_slide(path: str, badge: str, body: str, step_idx: int, total: int = 4)
         x = (w - tw) // 2
         draw.text((x, start_y + idx * line_h), line, fill=(248, 250, 252), font=f_title)
 
-    # Progress dots & footer
     dot_x0 = (w - (total * 34)) // 2
     for i in range(total):
         col = (52, 211, 153) if i == step_idx else (51, 65, 85)
