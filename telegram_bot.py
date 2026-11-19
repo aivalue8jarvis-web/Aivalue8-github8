@@ -25,6 +25,14 @@ def reply_tg(chat_id: str, text: str):
 
 def activate_telegram_webhook() -> dict:
     hook_url = f"{PUBLIC_URL}/telegram/webhook"
+    tg_api("setMyCommands", {"commands": [
+        {"command": "status", "description": "Wallets, Kids Box & CRM Status"},
+        {"command": "autopilot", "description": "Poori AI Company Run Karein"},
+        {"command": "scan", "description": "Nayi Business Opportunities Dhundhein"},
+        {"command": "idea", "description": "Aaj Ka Naya Business Idea"},
+        {"command": "invoice", "description": "UPI Link (/invoice Name | Amt | Work)"},
+        {"command": "help", "description": "Jarvis Commands Cheat Sheet"}
+    ]})
     return tg_api("setWebhook", {"url": hook_url})
 
 def _process_update(update: dict):

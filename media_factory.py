@@ -4,12 +4,15 @@ from sentinel import smart_generate, send_alert, PRIMARY_MODEL
 from governance import check_compliance
 from cloner import register_unique_or_reject
 
+import os
+PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
+
 def generate_media_campaign(topic: str = "", platform: str = "Instagram Reels & YouTube Shorts") -> dict:
     focus = topic.strip() or "How aIValue8 automates business growth, websites/apps, WhatsApp CRM and B2B trade in India"
     prompt = f"""
     Topic: "{focus}"
     Platform: "{platform}"
-    aIValue8 Corporation ke liye ek high-converting viral marketing campaign banao (ASCI & ethical Indian rules ke hisaab se, koi fake guarantee nahi).
+    aIValue8 Corporation (Website: {PUBLIC_URL}) ke liye CTA mein hamesha {PUBLIC_URL} bolna, aIValue8.com mat likhna. Ek ek high-converting viral marketing campaign banao (ASCI & ethical Indian rules ke hisaab se, koi fake guarantee nahi).
     Reply ONLY valid JSON:
     {{
       "title": "Short unique campaign title",
