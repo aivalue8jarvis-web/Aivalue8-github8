@@ -9,6 +9,7 @@ from database import get_connection
 from sentinel import smart_generate, diagnose_and_alert, PRIMARY_MODEL
 from lead_hunter import hunt_public_leads
 from hunter import run_opportunity_scan, generate_daily_venture
+from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
 from payments import create_invoice
 from backup import run_daily_backup
@@ -30,6 +31,7 @@ def activate_telegram_webhook() -> dict:
         {"command": "autopilot", "description": "Poori AI Company Run Karein"},
         {"command": "leads", "description": "Latest CRM Leads & Lead Hunt"},
         {"command": "scan", "description": "Nayi Business Opportunities Dhundhein"},
+        {"command": "reel", "description": "Auto MP4 Reel Video Banayein"},
         {"command": "idea", "description": "Aaj Ka Naya Business Idea"},
         {"command": "invoice", "description": "UPI Link (/invoice Name | Amt | Work)"},
         {"command": "backup", "description": "Database Backup backup@sarahics.in"},
@@ -128,6 +130,11 @@ def _process_update(update: dict):
             res = run_opportunity_scan()
             if res.get("new_saved", 0) == 0:
                 reply_tg(chat_id, "🌍 Scan complete: Koi naya unique item nahi mila.")
+            return
+
+        if text == "/reel":
+            reply_tg(chat_id, "🎬 Auto Reel Video (AI Voice + Slides) ban rahi hai... 10 sec!")
+            generate_media_campaign()
             return
 
         if text == "/idea":

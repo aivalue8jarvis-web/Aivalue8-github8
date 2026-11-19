@@ -405,3 +405,14 @@ def api_lead_hunt():
 @app.post("/backup/run", dependencies=[Depends(verify_admin)])
 def api_run_backup():
     return run_daily_backup()
+
+
+@app.get("/media/{filename}")
+def serve_reel_media(filename: str):
+    safe = os.path.basename(filename)
+    if not safe.endswith(".mp4"):
+        raise HTTPException(status_code=400, detail="Invalid media file")
+    path = os.path.join("/tmp/aivalue8_media", safe)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Media expired or not found")
+    return FileResponse(path, media_type="video/mp4")
