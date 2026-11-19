@@ -393,3 +393,15 @@ async def telegram_webhook(request: Request):
 @app.get("/telegram/activate-webhook", dependencies=[Depends(verify_admin)])
 def api_activate_tg():
     return activate_telegram_webhook()
+
+
+from lead_hunter import hunt_public_leads
+from backup import run_daily_backup
+
+@app.post("/leads/hunt", dependencies=[Depends(verify_admin)])
+def api_lead_hunt():
+    return hunt_public_leads()
+
+@app.post("/backup/run", dependencies=[Depends(verify_admin)])
+def api_run_backup():
+    return run_daily_backup()

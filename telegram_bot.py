@@ -7,9 +7,11 @@ from google.genai import types
 
 from database import get_connection
 from sentinel import smart_generate, diagnose_and_alert, PRIMARY_MODEL
+from lead_hunter import hunt_public_leads
 from hunter import run_opportunity_scan, generate_daily_venture
 from autopilot import run_daily_autopilot
 from payments import create_invoice
+from backup import run_daily_backup
 
 PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
 
@@ -17,23 +19,23 @@ def tg_api(method: str, payload: dict = None):
     tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not tok:
         return {"ok": False, "error": "TELEGRAM_BOT_TOKEN missing"}
-    r = requests.post(f"https://api.telegram.org/bot{tok}/{method}", json=payload or {}, timeout=15)
-    return r.json()
+    return requests.post(f"https://api.telegram.org/bot{tok}/{method}", json=payload or {}, timeout=15).json()
 
 def reply_tg(chat_id: str, text: str):
     tg_api("sendMessage", {"chat_id": chat_id, "text": text[:4000]})
 
 def activate_telegram_webhook() -> dict:
-    hook_url = f"{PUBLIC_URL}/telegram/webhook"
     tg_api("setMyCommands", {"commands": [
         {"command": "status", "description": "Wallets, Kids Box & CRM Status"},
         {"command": "autopilot", "description": "Poori AI Company Run Karein"},
+        {"command": "leads", "description": "Latest CRM Leads & Lead Hunt"},
         {"command": "scan", "description": "Nayi Business Opportunities Dhundhein"},
         {"command": "idea", "description": "Aaj Ka Naya Business Idea"},
         {"command": "invoice", "description": "UPI Link (/invoice Name | Amt | Work)"},
+        {"command": "backup", "description": "Database Backup backup@sarahics.in"},
         {"command": "help", "description": "Jarvis Commands Cheat Sheet"}
     ]})
-    return tg_api("setWebhook", {"url": hook_url})
+    return tg_api("setWebhook", {"url": f"{PUBLIC_URL}/telegram/webhook"})
 
 def _process_update(update: dict):
     msg = update.get("message")
@@ -46,12 +48,10 @@ def _process_update(update: dict):
         return
 
     try:
-        # 1. Photo / Screenshot Vision
         if msg.get("photo"):
             reply_tg(chat_id, "👁️ Screenshot/Photo analyze ho raha hai...")
             file_id = msg["photo"][-1]["file_id"]
-            f_info = tg_api("getFile", {"file_id": file_id})
-            f_path = f_info.get("result", {}).get("file_path", "")
+            f_path = tg_api("getFile", {"file_id": file_id}).get("result", {}).get("file_path", "")
             tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
             img_bytes = requests.get(f"https://api.telegram.org/file/bot{tok}/{f_path}", timeout=20).content
             note = msg.get("caption", "Telegram photo scan")
@@ -72,9 +72,8 @@ def _process_update(update: dict):
         if not text:
             return
 
-        # 2. Commands
-        if text == "/start" or text == "/help":
-            reply_tg(chat_id, "🤖 aIValue8 Jarvis Ready!\n\n• Koi bhi Photo/Screenshot bhejein -> Instant Evaluation\n• /status -> Wallets, Kids Box & Salary\n• /invoice Name | Amount | Service -> UPI Link\n• /autopilot -> Full Company Run\n• /scan -> Opportunity Hunt\n• /idea -> Daily Venture\n• Ya koi bhi sawal likhein!")
+        if text in ("/start", "/help"):
+            reply_tg(chat_id, "🤖 aIValue8 Jarvis Ready!\n\n• Photo/Screenshot bhejein -> Instant Evaluation\n• /status -> Wallets, Kids Box & Salary\n• /autopilot -> Full Company + Lead Hunt + Clones\n• /leads -> Public Leads Hunt + CRM List\n• /scan -> Opportunity Hunt\n• /idea -> Daily Venture Idea\n• /invoice Name | Amt | Work -> UPI Link\n• /backup -> Send DB Backup Email\n• Ya koi bhi sawal likhein!")
             return
 
         if text == "/status":
@@ -93,20 +92,34 @@ def _process_update(update: dict):
             reply_tg(chat_id, f"👑 aIValue8 LIVE STATUS:\n\n💰 Wallets:\n{w_txt}\n\n🧬 Active Clones: {ac} | 📋 CRM Leads: {lc}")
             return
 
+        if text == "/leads":
+            reply_tg(chat_id, "🕵️‍♂️ Naye public leads hunt ho rahe hain...")
+            res = hunt_public_leads()
+            conn = get_connection()
+            try:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute("SELECT lead_name, contact, temperature FROM crm_leads ORDER BY id DESC LIMIT 5;")
+                    rows = cur.fetchall()
+            finally:
+                conn.close()
+            lst = "\n".join([f"• [{r['temperature']}] {r['lead_name']} ({r['contact']})" for r in rows]) or "Koi lead nahi."
+            reply_tg(chat_id, f"📋 Latest 5 CRM Leads (New hunted: {res.get('new_leads', 0)}):\n{lst}")
+            return
+
         if text.startswith("/invoice"):
             parts = [p.strip() for p in text[8:].split("|")]
             if len(parts) < 3:
-                reply_tg(chat_id, "Use format:\n/invoice Rajesh | 3500 | Website Build")
+                reply_tg(chat_id, "Format:\n/invoice Rajesh | 3500 | Website Build")
                 return
             inv = create_invoice(parts[0], "", parts[2], float(parts[1]))
             if inv.get("pay_path"):
-                reply_tg(chat_id, f"💳 Official Invoice Ready!\nClient: {parts[0]}\nAmount: ₹{inv['amount_inr']}\n🔗 Link: {PUBLIC_URL}{inv['pay_path']}")
+                reply_tg(chat_id, f"💳 Invoice Ready!\nClient: {parts[0]}\nAmount: ₹{inv['amount_inr']}\n🔗 {PUBLIC_URL}{inv['pay_path']}")
             else:
                 reply_tg(chat_id, f"⚠️ {inv}")
             return
 
         if text == "/autopilot":
-            reply_tg(chat_id, "🤖 Full Auto-Pilot start ho gaya hai—report 15 second mein aayegi...")
+            reply_tg(chat_id, "🤖 Full Auto-Pilot (Lead Hunt + Clones + Media + Backup) chal raha hai...")
             run_daily_autopilot()
             return
 
@@ -114,16 +127,20 @@ def _process_update(update: dict):
             reply_tg(chat_id, "🌍 Market opportunities scan ho rahi hain...")
             res = run_opportunity_scan()
             if res.get("new_saved", 0) == 0:
-                reply_tg(chat_id, "🌍 Scan complete: Koi naya unique item nahi mila (duplicates skipped).")
+                reply_tg(chat_id, "🌍 Scan complete: Koi naya unique item nahi mila.")
             return
 
         if text == "/idea":
-            reply_tg(chat_id, "💡 Aaj ka naya Venture Idea ban raha hai...")
+            reply_tg(chat_id, "💡 Aaj ka Venture Idea ban raha hai...")
             generate_daily_venture()
             return
 
-        # 3. Normal CEO Chat
-        reply = smart_generate(text, system_prompt="Tumhara naam 'aIValue8' hai. Tum Rayan ke Autonomous Business AI CEO ho. Crisp Hinglish mein madad karo.", model=PRIMARY_MODEL)
+        if text == "/backup":
+            reply_tg(chat_id, "💾 Database backup bheja ja raha hai...")
+            run_daily_backup()
+            return
+
+        reply = smart_generate(text, system_prompt="Tumhara naam 'aIValue8' hai. Tum Rayan ke Autonomous AI CEO ho. Crisp Hinglish mein jawab do.", model=PRIMARY_MODEL)
         reply_tg(chat_id, reply)
     except Exception as e:
         diagnose_and_alert("telegram_bot", e)
