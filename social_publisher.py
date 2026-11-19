@@ -2,7 +2,7 @@ import os
 import time
 import requests
 
-PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
+PUBLIC_URL = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
 
 def send_telegram_video(mp4_path: str, caption: str) -> dict:
     tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()

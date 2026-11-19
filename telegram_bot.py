@@ -14,7 +14,7 @@ from autopilot import run_daily_autopilot
 from payments import create_invoice
 from backup import run_daily_backup
 
-PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
+PUBLIC_URL = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
 
 def tg_api(method: str, payload: dict = None):
     tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()

@@ -7,7 +7,7 @@ from cloner import register_unique_or_reject
 from reel_studio import create_reel_mp4
 from social_publisher import publish_or_deliver_reel
 
-PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
+PUBLIC_URL = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
 
 def generate_media_campaign(topic: str = "", platform: str = "Instagram Reels & YouTube Shorts") -> dict:
     focus = topic.strip() or "How aIValue8 automates business growth, websites/apps, WhatsApp CRM and B2B trade in India"
