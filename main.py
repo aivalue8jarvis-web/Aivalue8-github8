@@ -416,3 +416,23 @@ def serve_reel_media(filename: str):
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Media expired or not found")
     return FileResponse(path, media_type="video/mp4")
+
+
+from autopilot import run_4x_industry_scan
+from c_suite import run_csuite_board
+from payments import reject_invoice
+
+class RejectRequest(BaseModel):
+    reason: str = "UTR mismatch"
+
+@app.post("/scan/4x", dependencies=[Depends(verify_admin)])
+def api_scan_4x():
+    return run_4x_industry_scan()
+
+@app.post("/csuite/run", dependencies=[Depends(verify_admin)])
+def api_csuite():
+    return run_csuite_board()
+
+@app.post("/invoices/{invoice_id}/reject", dependencies=[Depends(verify_admin)])
+def api_reject_invoice(invoice_id: str, req: RejectRequest):
+    return reject_invoice(invoice_id, req.reason)

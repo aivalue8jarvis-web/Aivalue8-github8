@@ -190,3 +190,79 @@ def create_reel_mp4(title: str, hook: str, script_body: str, cta_url: str = "htt
         except Exception:
             pass
     return out_mp4
+
+
+def create_reel_from_screenshots(image_paths: list, title: str, hook: str, script_body: str, cta_url: str = "https://sarahics.in") -> str:
+    _cleanup_old_media()
+    uid = f"appreel_{int(time.time())}"
+    out_mp4 = os.path.join(MEDIA_DIR, f"{uid}.mp4")
+    audio_mp3 = os.path.join(MEDIA_DIR, f"{uid}.mp3")
+    slides_txt = os.path.join(MEDIA_DIR, f"{uid}.txt")
+
+    clean_script = re.sub(r"\[[^\]]+\]|\([^\)]+\)", " ", script_body or "")
+    clean_script = " ".join(clean_script.split())
+    sentences = [x.strip() for x in re.split(r"[.!?]+", clean_script) if len(x.strip()) > 6]
+    captions = [hook or title, sentences[0] if sentences else "Smart AI Built App Demo", f"Try Live: {cta_url}"]
+
+    png_paths = []
+    f_sm = ImageFont.load_default(size=24)
+    f_cap = ImageFont.load_default(size=36)
+    w, h = 720, 1280
+
+    for idx in range(max(len(image_paths), len(captions))):
+        src = image_paths[idx % len(image_paths)]
+        cap = captions[idx % len(captions)].replace("•", "|")
+        img = Image.new("RGB", (w, h), (4, 8, 20))
+        draw = ImageDraw.Draw(img)
+        draw.rounded_rectangle([24, 30, w - 24, h - 30], radius=34, outline=(56, 189, 248), width=4)
+        draw.text((55, 62), "aIValue8 LIVE APP DEMO", fill=(52, 211, 153), font=f_sm)
+
+        # Paste User App Screenshot cleanly inside glowing frame
+        draw.rounded_rectangle([85, 115, w - 85, 765], radius=24, fill=(10, 18, 36), outline=(52, 211, 153), width=3)
+        shot = Image.open(src).convert("RGB")
+        shot.thumbnail((520, 620))
+        sx = (w - shot.width) // 2
+        sy = 128 + (620 - shot.height) // 2
+        img.paste(shot, (sx, sy))
+
+        # Caption Card
+        draw.rounded_rectangle([52, 795, w - 52, 1135], radius=24, fill=(10, 18, 36), outline=(37, 99, 235), width=2)
+        lines = textwrap.wrap(cap, width=25)[:5]
+        y0 = 835
+        for ln in lines:
+            bb = draw.textbbox((0, 0), ln, font=f_cap)
+            draw.text(((w - (bb[2] - bb[0])) // 2, y0), ln, fill=(248, 250, 252), font=f_cap)
+            y0 += 52
+        draw.text((195, h - 105), "sarahics.in  |  AI Apps", fill=(56, 189, 248), font=f_sm)
+
+        out_p = os.path.join(MEDIA_DIR, f"{uid}_{idx}.png")
+        img.save(out_p, "PNG")
+        png_paths.append(out_p)
+
+    with open(slides_txt, "w") as f:
+        for p in png_paths:
+            f.write(f"file '{p}'\nduration 5\n")
+        f.write(f"file '{png_paths[-1]}'\n")
+
+    voice_text = f"{hook}. {" ".join(sentences[:2])}. Visit sarahics dot in."
+    has_audio = False
+    try:
+        asyncio.run(_tts_save(voice_text[:500], audio_mp3))
+        has_audio = os.path.exists(audio_mp3) and os.path.getsize(audio_mp3) > 500
+    except Exception:
+        has_audio = False
+
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    if has_audio:
+        cmd = [ffmpeg_exe, "-y", "-f", "concat", "-safe", "0", "-i", slides_txt, "-i", audio_mp3, "-vf", "scale=720:1280,fps=24,format=yuv420p", "-c:v", "libx264", "-preset", "ultrafast", "-c:a", "aac", "-b:a", "128k", "-shortest", out_mp4]
+    else:
+        cmd = [ffmpeg_exe, "-y", "-f", "concat", "-safe", "0", "-i", slides_txt, "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100", "-t", "15", "-vf", "scale=720:1280,fps=24,format=yuv420p", "-c:v", "libx264", "-preset", "ultrafast", "-c:a", "aac", "-shortest", out_mp4]
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    for tmp in png_paths + [audio_mp3, slides_txt]:
+        try:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        except Exception:
+            pass
+    return out_mp4

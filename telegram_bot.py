@@ -1,4 +1,6 @@
 import os
+import re
+import time
 import json
 import threading
 import requests
@@ -9,10 +11,11 @@ from database import get_connection
 from sentinel import smart_generate, diagnose_and_alert, PRIMARY_MODEL
 from lead_hunter import hunt_public_leads
 from hunter import run_opportunity_scan, generate_daily_venture
-from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
-from payments import create_invoice
+from payments import create_invoice, approve_and_settle_invoice, reject_invoice
 from backup import run_daily_backup
+from media_factory import generate_media_campaign, create_app_demo_reel_from_image
+from c_suite import run_csuite_board
 
 PUBLIC_URL = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
 
@@ -28,10 +31,11 @@ def reply_tg(chat_id: str, text: str):
 def activate_telegram_webhook() -> dict:
     tg_api("setMyCommands", {"commands": [
         {"command": "status", "description": "Wallets, Kids Box & CRM Status"},
-        {"command": "autopilot", "description": "Poori AI Company Run Karein"},
-        {"command": "leads", "description": "Latest CRM Leads & Lead Hunt"},
+        {"command": "autopilot", "description": "Poori AI Company + C-Suite Run"},
+        {"command": "csuite", "description": "COO, CFO/vCA & CSO Board Report"},
+        {"command": "reel", "description": "Auto Motion-Graphics Reel Banayein"},
+        {"command": "leads", "description": "Multi-Industry + Job Leads Hunt"},
         {"command": "scan", "description": "Nayi Business Opportunities Dhundhein"},
-        {"command": "reel", "description": "Auto MP4 Reel Video Banayein"},
         {"command": "idea", "description": "Aaj Ka Naya Business Idea"},
         {"command": "invoice", "description": "UPI Link (/invoice Name | Amt | Work)"},
         {"command": "backup", "description": "Database Backup backup@sarahics.in"},
@@ -40,24 +44,73 @@ def activate_telegram_webhook() -> dict:
     return tg_api("setWebhook", {"url": f"{PUBLIC_URL}/telegram/webhook"})
 
 def _process_update(update: dict):
+    owner_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+
+    # 1. Handle Payment Accept / Reject Inline Buttons
+    cq = update.get("callback_query")
+    if cq:
+        cq_id = cq.get("id")
+        chat_id = str(cq.get("message", {}).get("chat", {}).get("id", ""))
+        data = cq.get("data", "")
+        tg_api("answerCallbackQuery", {"callback_query_id": cq_id})
+        if not owner_id or chat_id != owner_id:
+            return
+        try:
+            if data.startswith("pay_accept:"):
+                inv_id = data.split(":", 1)[1]
+                res = approve_and_settle_invoice(inv_id)
+                reply_tg(chat_id, f"✅ Invoice {inv_id} ACCEPTED & SPLIT! ({res.get('status')})")
+            elif data.startswith("pay_reject:"):
+                inv_id = data.split(":", 1)[1]
+                tg_api("sendMessage", {
+                    "chat_id": chat_id,
+                    "text": f"Reject Reason for {inv_id}:\n(Is message par reply mein rejection reason likhein)",
+                    "reply_markup": {"force_reply": True, "selective": True}
+                })
+        except Exception as e:
+            reply_tg(chat_id, f"⚠️ Payment action error: {e}")
+        return
+
     msg = update.get("message")
     if not msg:
         return
     chat_id = str(msg.get("chat", {}).get("id", ""))
-    owner_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
     if not owner_id or chat_id != owner_id:
         reply_tg(chat_id, "⛔ Unauthorized. Only Owner Rayan can control aIValue8 OS.")
         return
 
     try:
+        # 2. Handle Reply to Rejection Reason Box
+        rep_txt = (msg.get("reply_to_message") or {}).get("text", "")
+        m_rej = re.search(r"Reject Reason for (AV8-[A-Z0-9]+):", rep_txt)
+        if m_rej and msg.get("text"):
+            inv_id = m_rej.group(1)
+            reject_invoice(inv_id, msg["text"])
+            return
+
+        # 3. Handle Photo: 'reel:' -> App Demo Video Reel | Normal -> Vision Evaluator
         if msg.get("photo"):
-            reply_tg(chat_id, "👁️ Screenshot/Photo analyze ho raha hai...")
             file_id = msg["photo"][-1]["file_id"]
             f_path = tg_api("getFile", {"file_id": file_id}).get("result", {}).get("file_path", "")
             tok = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
             img_bytes = requests.get(f"https://api.telegram.org/file/bot{tok}/{f_path}", timeout=20).content
-            note = msg.get("caption", "Telegram photo scan")
-            prompt = f'Is image/bill/product ko evaluate karo. Note: {note}. Reply ONLY JSON: {{"eval_type":"BILL or PRODUCT or ERROR or IDEA","summary":"3 line crisp Hinglish evaluation","estimated_value_inr":0}}'
+            caption = (msg.get("caption") or "").strip()
+
+            if caption.lower().startswith("reel"):
+                reply_tg(chat_id, "🎬 Aapki App Screenshot se Video Reel + Voiceover + Hashtags ban rahe hain... 15 sec!")
+                os.makedirs("/tmp/aivalue8_media", exist_ok=True)
+                tmp_jpg = f"/tmp/aivalue8_media/tg_app_{int(time.time())}.jpg"
+                with open(tmp_jpg, "wb") as f:
+                    f.write(img_bytes)
+                try:
+                    create_app_demo_reel_from_image(tmp_jpg, caption)
+                finally:
+                    if os.path.exists(tmp_jpg):
+                        os.remove(tmp_jpg)
+                return
+
+            reply_tg(chat_id, "👁️ Screenshot/Photo analyze ho raha hai...")
+            prompt = f'Evaluate image. Note: {caption or "Photo scan"}. Reply ONLY JSON: {{"eval_type":"BILL or PRODUCT or ERROR or IDEA","summary":"3 line crisp Hinglish evaluation","estimated_value_inr":0}}'
             img_part = types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")
             ev = json.loads(smart_generate([prompt, img_part], system_prompt="Tum aIValue8 Vision Evaluator ho.", model="gemini-3.5-flash-lite", json_mode=True))
             conn = get_connection()
@@ -75,7 +128,7 @@ def _process_update(update: dict):
             return
 
         if text in ("/start", "/help"):
-            reply_tg(chat_id, "🤖 aIValue8 Jarvis Ready!\n\n• Photo/Screenshot bhejein -> Instant Evaluation\n• /status -> Wallets, Kids Box & Salary\n• /autopilot -> Full Company + Lead Hunt + Clones\n• /leads -> Public Leads Hunt + CRM List\n• /scan -> Opportunity Hunt\n• /idea -> Daily Venture Idea\n• /invoice Name | Amt | Work -> UPI Link\n• /backup -> Send DB Backup Email\n• Ya koi bhi sawal likhein!")
+            reply_tg(chat_id, "🤖 aIValue8 Jarvis Ready!\n\n• App Screenshot + caption 'reel: detail' bhejein -> App Video Reel!\n• Normal Photo bhejein -> Vision Evaluation\n• /status -> Wallets, Kids Box & Salary\n• /autopilot -> Full Company + C-Suite\n• /csuite -> COO, CFO/vCA & CSO Board\n• /reel -> Auto Motion Reel\n• /leads -> Multi-Industry & Job Leads\n• /invoice Name | Amt | Work -> UPI Link\n• /backup -> Send DB Backup Email")
             return
 
         if text == "/status":
@@ -95,17 +148,17 @@ def _process_update(update: dict):
             return
 
         if text == "/leads":
-            reply_tg(chat_id, "🕵️‍♂️ Naye public leads hunt ho rahe hain...")
+            reply_tg(chat_id, "🕵️‍♂️ Multi-Industry + Job/Employer leads hunt ho rahe hain...")
             res = hunt_public_leads()
             conn = get_connection()
             try:
                 with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute("SELECT lead_name, contact, temperature FROM crm_leads ORDER BY id DESC LIMIT 5;")
+                    cur.execute("SELECT lead_name, contact, lead_type, temperature FROM crm_leads ORDER BY id DESC LIMIT 5;")
                     rows = cur.fetchall()
             finally:
                 conn.close()
-            lst = "\n".join([f"• [{r['temperature']}] {r['lead_name']} ({r['contact']})" for r in rows]) or "Koi lead nahi."
-            reply_tg(chat_id, f"📋 Latest 5 CRM Leads (New hunted: {res.get('new_leads', 0)}):\n{lst}")
+            lst = "\n".join([f"• [{r['lead_type']}|{r['temperature']}] {r['lead_name']} ({r['contact']})" for r in rows]) or "Koi lead nahi."
+            reply_tg(chat_id, f"📋 Latest 5 Leads (New: {res.get('new_leads', 0)}):\n{lst}")
             return
 
         if text.startswith("/invoice"):
@@ -121,8 +174,18 @@ def _process_update(update: dict):
             return
 
         if text == "/autopilot":
-            reply_tg(chat_id, "🤖 Full Auto-Pilot (Lead Hunt + Clones + Media + Backup) chal raha hai...")
+            reply_tg(chat_id, "🤖 Full Auto-Pilot + C-Suite Board chal raha hai...")
             run_daily_autopilot()
+            return
+
+        if text == "/csuite":
+            reply_tg(chat_id, "🏛️ COO, CFO/vCA & CSO Executive Board meeting chal rahi hai...")
+            run_csuite_board()
+            return
+
+        if text == "/reel":
+            reply_tg(chat_id, "🎬 Motion-Graphics Reel Video ban rahi hai... 15 sec!")
+            generate_media_campaign()
             return
 
         if text == "/scan":
@@ -130,11 +193,6 @@ def _process_update(update: dict):
             res = run_opportunity_scan()
             if res.get("new_saved", 0) == 0:
                 reply_tg(chat_id, "🌍 Scan complete: Koi naya unique item nahi mila.")
-            return
-
-        if text == "/reel":
-            reply_tg(chat_id, "🎬 Auto Reel Video (AI Voice + Slides) ban rahi hai... 10 sec!")
-            generate_media_campaign()
             return
 
         if text == "/idea":
