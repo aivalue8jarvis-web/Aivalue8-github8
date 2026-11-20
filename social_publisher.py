@@ -44,12 +44,16 @@ def _ig_host_and_id(token: str, ig_id: str):
     base = "https://graph.facebook.com/v21.0"
     if ig_id:
         return base, ig_id, None
+    assigned = requests.get(f"{base}/me/assigned_instagram_accounts", params={"access_token": token}, timeout=15).json()
+    for acc in assigned.get("data", []):
+        if acc.get("id"):
+            return base, str(acc["id"]), None
     pages = requests.get(f"{base}/me/accounts", params={"fields": "name,instagram_business_account", "access_token": token}, timeout=15).json()
     for pg in pages.get("data", []):
         iba = pg.get("instagram_business_account") or {}
         if iba.get("id"):
             return base, str(iba["id"]), None
-    return base, "", pages
+    return base, "", {"assigned": assigned, "pages": pages}
 
 def debug_instagram_connection() -> dict:
     ig_id = os.getenv("INSTAGRAM_USER_ID", "").strip()
