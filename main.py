@@ -436,3 +436,10 @@ def api_csuite():
 @app.post("/invoices/{invoice_id}/reject", dependencies=[Depends(verify_admin)])
 def api_reject_invoice(invoice_id: str, req: RejectRequest):
     return reject_invoice(invoice_id, req.reason)
+
+
+from social_publisher import debug_instagram_connection
+
+@app.get("/instagram/debug", dependencies=[Depends(verify_admin)])
+def api_ig_debug():
+    return debug_instagram_connection()
