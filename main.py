@@ -23,6 +23,7 @@ from mailer import process_crm_outreach, handle_email_reply
 from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
 from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
+from main_seo import get_dynamic_seo_page
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -474,3 +475,8 @@ def api_ig_debug():
 @app.get("/store", response_class=HTMLResponse)
 def public_store_page():
     return PUBLIC_HOME_HTML
+
+
+@app.get("/p/{slug}", response_class=HTMLResponse)
+def public_seo_landing_page(slug: str):
+    return get_dynamic_seo_page(slug)
