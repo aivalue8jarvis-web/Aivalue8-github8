@@ -10,29 +10,46 @@ from matchmaker import dispatch_whatsapp_or_link
 from payments import create_invoice
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "aivalue8.jarvis@gmail.com").strip()
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "sales@sarahics.in").strip()
 GMAIL_BRIDGE_URL = os.getenv("GMAIL_BRIDGE_URL", "").strip()
-PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://aivalue8-os.onrender.com").rstrip("/")
+PUBLIC_URL = os.getenv("RENDER_EXTERNAL_URL", "https://sarahics.in").rstrip("/")
 
 def extract_email(text: str) -> str:
     m = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", str(text or ""))
     return m.group(0) if m else ""
 
 def send_email_https(to_email: str, subject: str, body: str) -> dict:
-    footer = "\n\n---\naIValue8 Corporation | AI, Web/App, Automation & Trade\nAgar aap future emails nahi chahte, toh 'STOP' reply karein."
+    footer = "\n\n---\naIValue8 Corporation (Sarahics) | AI, Web/App, Automation & Trade\nSupport: sales@sarahics.in"
     full_body = body.strip() + footer
-    if BREVO_API_KEY:
-        res = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json"},
-            json={"sender": {"name": "aIValue8 Corporation", "email": SENDER_EMAIL}, "to": [{"email": to_email}], "subject": subject, "textContent": full_body},
-            timeout=10
-        )
-        return {"sent": res.status_code in (200, 201, 202), "mode": "BREVO_HTTPS", "code": res.status_code}
+    
+    # Try Brevo API if key exists
+    if BREVO_API_KEY and len(BREVO_API_KEY) > 10:
+        try:
+            res = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json"},
+                json={"sender": {"name": "aIValue8 Corporation", "email": SENDER_EMAIL}, "to": [{"email": to_email}], "subject": subject, "textContent": full_body},
+                timeout=10
+            )
+            if res.status_code in (200, 201, 202):
+                return {"sent": True, "mode": "BREVO_API", "code": res.status_code}
+            else:
+                print(f"Brevo API error response: {res.text}")
+        except Exception as e:
+            print(f"Brevo API exception: {e}")
+
+    # Try Gmail Bridge if configured
     if GMAIL_BRIDGE_URL:
-        res = requests.post(GMAIL_BRIDGE_URL, json={"to": to_email, "subject": subject, "body": full_body}, timeout=10)
-        return {"sent": res.status_code == 200, "mode": "GMAIL_BRIDGE", "code": res.status_code}
-    return {"sent": False, "mode": "DRAFT_ONLY"}
+        try:
+            res = requests.post(GMAIL_BRIDGE_URL, json={"to": to_email, "subject": subject, "body": full_body}, timeout=10)
+            if res.status_code == 200:
+                return {"sent": True, "mode": "GMAIL_BRIDGE", "code": 200}
+        except Exception:
+            pass
+
+    # Fallback / Draft Mode (Logs cleanly to Telegram/Console instead of failing)
+    print(f"⚠️ [MAIL FALLBACK] To: {to_email} | Sub: {subject}")
+    return {"sent": False, "mode": "FALLBACK_LOGGED", "code": 0}
 
 def process_crm_outreach() -> dict:
     conn = get_connection()
@@ -54,7 +71,6 @@ def process_crm_outreach() -> dict:
             email = extract_email(lead["contact"]) or extract_email(lead["requirement"])
             stage = lead["outreach_stage"] or 0
 
-            # Case 1: No Email OR Day 7 No-Response Fallback -> Switch to WhatsApp / Call Alert!
             if not email or stage == 3:
                 pitch = smart_generate(
                     f"Lead: {lead['lead_name']} | Need: {lead['requirement']}. 2-line polite Hinglish WhatsApp follow-up message likho.",
@@ -69,15 +85,12 @@ def process_crm_outreach() -> dict:
                     f"📲 CHANNEL SWITCH ({reason}):\nLead: {lead['lead_name']} ({lead['contact']}) [{lead['temperature']}]\n"
                     f"💬 Message:\n{pitch}\n👉 Link: {wa_res.get('url', 'Sent via Meta API')}"
                 )
-                if lead["temperature"] == "HOT":
-                    send_alert(f"📞 HOT LEAD CALL ALERT: {lead['lead_name']} ({lead['contact']}) ko 1 call zaroor karein!")
                 with conn:
                     with conn.cursor() as cur:
                         cur.execute("UPDATE crm_leads SET outreach_stage = 4, last_outreach_at = CURRENT_TIMESTAMP WHERE id = %s;", (lead["id"],))
                 actions.append({"lead": lead["lead_name"], "channel": "WHATSAPP_FALLBACK", "reason": reason})
                 continue
 
-            # Case 2: Email Outreach (Stage 0=Pitch, 1=Day2 Followup, 2=Day5 Final)
             stage_desc = {0: "Initial Deal Proposal", 1: "Polite Day-2 Value Follow-up", 2: "Final Day-5 Check-in"}[stage]
             raw = smart_generate(
                 f"Stage: {stage_desc}. Client: {lead['lead_name']}. Need: {lead['requirement']}. Site: {PUBLIC_URL}. Reply JSON: {{\"subject\":\"short subject\",\"body\":\"4-line polite Hinglish/English business email\"}}",
@@ -89,7 +102,7 @@ def process_crm_outreach() -> dict:
                 continue
             send_res = send_email_https(email, mail_data["subject"], mail_data["body"])
             if not send_res["sent"]:
-                send_alert(f"📧 EMAIL DRAFT READY ({stage_desc}):\nTo: {email}\nSub: {mail_data['subject']}\n\n{mail_data['body']}")
+                send_alert(f"📧 EMAIL DRAFT LOGGED ({stage_desc}):\nTo: {email}\nSub: {mail_data['subject']}\n\n{mail_data['body']}")
             with conn:
                 with conn.cursor() as cur:
                     cur.execute("UPDATE crm_leads SET outreach_stage = %s, last_outreach_at = CURRENT_TIMESTAMP WHERE id = %s;", (stage + 1, lead["id"]))
