@@ -10,6 +10,7 @@ from database import get_connection
 from sentinel import send_alert
 from governance import check_compliance
 from treasury import record_and_distribute_earning
+from fulfillment import fulfill_paid_order
 
 RAZORPAY_UPGRADE_TARGET = Decimal("25000.00")
 
