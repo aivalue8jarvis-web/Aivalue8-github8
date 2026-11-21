@@ -140,7 +140,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       </form>
       <div id="msg" style="margin-top:10px;font-size:14px;font-weight:600;"></div>
     </div>
-    <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/store">Micro-Store</a> &bull; <a href="/panel">Owner Room</a></footer>
+    <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/store">Micro-Store</a> &bull; <a href="/privacy">Privacy</a> &bull; <a href="/terms">Terms</a> &bull; <a href="/refund">Refunds</a> &bull; <a href="/contact">Contact</a> &bull; <a href="/panel">Owner</a></footer>
   </div>
 """ + _DOCK_HTML + """
   <script>

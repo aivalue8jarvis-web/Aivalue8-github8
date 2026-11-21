@@ -107,7 +107,8 @@ class VisionRequest(BaseModel):
 CEO_PROMPT = "Tumhara naam 'aIValue8' hai. Tum ek Autonomous Indian AI Company ke CEO ho. Indian rules aur ethics ke saath practical Hinglish mein jawab do."
 
 @app.get("/", response_class=HTMLResponse)
-def public_home():
+def public_home(request: Request):
+    record_visitor(request)
     return PUBLIC_HOME_HTML
 
 @app.get("/panel", response_class=HTMLResponse)
@@ -474,7 +475,8 @@ def api_ig_debug():
 
 
 @app.get("/store", response_class=HTMLResponse)
-def public_store_page():
+def public_store_page(request: Request):
+    record_visitor(request)
     return PUBLIC_STORE_HTML
 
 
@@ -491,3 +493,22 @@ def public_store_order(req: InvoiceRequest, request: Request):
     if req.amount_inr < 29:
         raise HTTPException(status_code=400, detail="Minimum order amount Rs 29 hai.")
     return create_invoice(req.client_name, req.client_contact, req.description, req.amount_inr)
+
+
+from legal_pages import PRIVACY_HTML, TERMS_HTML, REFUND_HTML, CONTACT_HTML
+
+@app.get("/privacy", response_class=HTMLResponse)
+def page_privacy():
+    return PRIVACY_HTML
+
+@app.get("/terms", response_class=HTMLResponse)
+def page_terms():
+    return TERMS_HTML
+
+@app.get("/refund", response_class=HTMLResponse)
+def page_refund():
+    return REFUND_HTML
+
+@app.get("/contact", response_class=HTMLResponse)
+def page_contact():
+    return CONTACT_HTML
