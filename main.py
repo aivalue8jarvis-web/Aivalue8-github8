@@ -18,7 +18,7 @@ from cloner import register_unique_or_reject, spawn_clone_agent, run_clone_agent
 from treasury import record_and_distribute_earning, verify_gateway_signature
 from hunter import run_opportunity_scan, generate_daily_venture
 from payments import create_invoice, get_invoice, submit_utr_proof, approve_and_settle_invoice, render_invoice_html
-from matchmaker import run_buyer_seller_matchmaker
+from matchmaker import run_buyer_seller_matchmaker, evaluate_lead_with_cfo
 from mailer import process_crm_outreach, handle_email_reply
 from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
