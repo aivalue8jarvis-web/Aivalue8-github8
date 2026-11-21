@@ -102,15 +102,15 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       <div class="vo-grid">
         <div class="vo-card">
           <h3>Starter Desk</h3>
-          <div class="vo-price">₹199<span style="font-size:12px;color:#94a3b8;">/mo</span></div>
+          <div class="vo-price">₹49<span style="font-size:12px;color:#94a3b8;">/mo</span></div>
           <p>GPS Attendance, Task Board, Team Chat &amp; Basic CRM for small teams.</p>
-          <button class="btn-outline" onclick="pickPlan('Virtual Office Starter Desk (Rs 199/mo)')">Select Starter</button>
+          <button class="btn-outline" onclick="pickPlan('Virtual Office Starter Desk (Rs 49/mo)')">Select Starter</button>
         </div>
         <div class="vo-card">
           <h3>Growth Office</h3>
-          <div class="vo-price">₹499<span style="font-size:12px;color:#94a3b8;">/mo</span></div>
+          <div class="vo-price">₹99<span style="font-size:12px;color:#94a3b8;">/mo</span></div>
           <p>Full CRM, WhatsApp Alerts, Virtual CA Expense Prep &amp; Team Reports.</p>
-          <button class="btn-outline" onclick="pickPlan('Virtual Office Growth (Rs 499/mo)')">Select Growth</button>
+          <button class="btn-outline" onclick="pickPlan('Virtual Office Growth (Rs 99/mo)')">Select Growth</button>
         </div>
         <div class="vo-card">
           <h3>Enterprise + AI</h3>
