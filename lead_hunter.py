@@ -7,14 +7,13 @@ from sentinel import smart_generate, send_alert, PRIMARY_MODEL
 from governance import check_compliance
 from cloner import register_unique_or_reject
 
+# Clean, direct business discovery feeds (avoiding raw breaking news redirect 404s)
 LEAD_FEEDS = [
     "https://www.reddit.com/r/forhire/search.rss?q=website+OR+app+OR+automation+OR+AI&restrict_sr=1&sort=new",
     "https://www.reddit.com/r/IndianStartups/new/.rss?limit=6",
-    "https://www.reddit.com/r/developersIndia/search.rss?q=hiring+OR+freelance+OR+job&restrict_sr=1&sort=new",
-    "https://news.google.com/rss/search?q=India+startup+OR+MSME+hiring+OR+digital+automation&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=India+jobs+recruitment+OR+remote+hiring+tech&hl=en-IN&gl=IN&ceid=IN:en"
+    "https://www.reddit.com/r/developersIndia/search.rss?q=hiring+OR+freelance+OR+agency&restrict_sr=1&sort=new"
 ]
-HEADERS = {"User-Agent": "aIValue8-LeadHunter/2.0 (+https://sarahics.in)"}
+HEADERS = {"User-Agent": "aIValue8-LeadHunter/2.1 (+https://sarahics.in)"}
 IGNORE_DOMAINS = ("reddit.com", "google.com", "noreply", "example.com", "sentry.io", "w3.org")
 
 def _extract_public_email(text: str) -> str:
@@ -32,7 +31,7 @@ def _fetch_public_posts() -> list:
                 continue
             root = ET.fromstring(r.text)
             entries = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
-            for el in entries[:3]:
+            for el in entries[:4]:
                 title = (el.findtext("title") or el.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
                 link_el = el.find("link")
                 link = (link_el.text or link_el.attrib.get("href", "")).strip() if link_el is not None else ""
@@ -41,11 +40,12 @@ def _fetch_public_posts() -> list:
                     if al is not None:
                         link = al.attrib.get("href", "").strip()
                 desc = (el.findtext("description") or el.findtext("{http://www.w3.org/2005/Atom}content") or "")[:450]
-                if title:
-                    posts.append({"title": title[:170], "link": link[:210], "email": _extract_public_email(desc), "snippet": re.sub("<[^>]+>", " ", desc)[:220]})
+                email = _extract_public_email(desc)
+                if title and "http" in link and "news.google.com" not in link:
+                    posts.append({"title": title[:170], "link": link[:210], "email": email, "snippet": re.sub("<[^>]+>", " ", desc)[:220]})
         except Exception:
             continue
-    return posts[:12]
+    return posts[:10]
 
 def hunt_public_leads() -> dict:
     posts = _fetch_public_posts()
@@ -53,14 +53,14 @@ def hunt_public_leads() -> dict:
         return {"status": "no_feed_signals", "new_leads": 0}
 
     prompt = f"""
-    In public internet posts/news ko dekho:
+    In direct public client requirement posts ko dekho:
     {json.dumps(posts, ensure_ascii=False)}
 
-    Inme se max 3 ethical leads nikalo jinhe Web/App, AI Automation, Virtual Office, B2B Trade ya Job/Employer matching ki zaroorat ho.
+    Inme se max 3 aisi verified leads nikalo jinka direct link ya email available ho aur jinhe Web/App, AI Automation, ya Virtual Office chahiye. News ya articles mat chunna, sirf direct looking-for-service posts chunna.
     Reply ONLY JSON:
-    {{"leads": [{{"lead_name": "Name or Company", "contact": "email if found else post link", "lead_type": "BUYER or SELLER or EMPLOYER or JOB_SEEKER", "temperature": "HOT or WARM or COLD", "requirement": "2 line summary + link"}}]}}
+    {{"leads": [{{"lead_name": "Name or Startup", "contact": "email if found else direct post link", "lead_type": "BUYER or EMPLOYER", "temperature": "HOT or WARM", "requirement": "2 line summary + clean link"}}]}}
     """
-    data = json.loads(smart_generate(prompt, system_prompt="Tum aIValue8 Multi-Industry Lead Hunter ho.", model=PRIMARY_MODEL, json_mode=True))
+    data = json.loads(smart_generate(prompt, system_prompt="Tum aIValue8 Direct Client Hunter ho.", model=PRIMARY_MODEL, json_mode=True))
     saved = []
     conn = get_connection()
     try:
@@ -68,7 +68,9 @@ def hunt_public_leads() -> dict:
             name = (ld.get("lead_name") or "").strip()
             contact = (ld.get("contact") or "").strip()
             req = (ld.get("requirement") or "").strip()
-            if not name or not contact or not register_unique_or_reject("CRM_LEAD", contact, name):
+            if not name or not contact or "news.google.com" in contact:
+                continue
+            if not register_unique_or_reject("CRM_LEAD", contact, name):
                 continue
             gov = check_compliance("LEAD_HUNTER", f"{name} | {req}")
             if not gov["approved"]:
@@ -77,13 +79,13 @@ def hunt_public_leads() -> dict:
                 with conn.cursor() as cur:
                     cur.execute(
                         "INSERT INTO crm_leads (lead_name,contact,lead_type,temperature,requirement,source) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT (contact) DO NOTHING;",
-                        (name[:140], contact[:95], (ld.get("lead_type") or "BUYER").upper()[:25], (ld.get("temperature") or "WARM").upper()[:15], req, "multi-industry-hunter")
+                        (name[:140], contact[:95], (ld.get("lead_type") or "BUYER").upper()[:25], (ld.get("temperature") or "WARM").upper()[:15], req, "direct-board-hunter")
                     )
             saved.append(ld)
     finally:
         conn.close()
 
     if saved:
-        msg = "\n".join([f"🎯 [{x.get('lead_type')}|{x.get('temperature')}] {x.get('lead_name')}\n   📌 {x.get('contact')}\n   💡 {x.get('requirement')[:130]}" for x in saved])
-        send_alert(f"🕵️‍♂️ MULTI-INDUSTRY LEADS FOUND ({len(saved)}):\n{msg}")
+        msg = "\n".join([f"🎯 [{x.get('lead_type')}] {x.get('lead_name')}\n   📌 {x.get('contact')}\n   💡 {x.get('requirement')[:130]}" for x in saved])
+        send_alert(f"🕵️‍♂️ VERIFIED DIRECT LEADS FOUND ({len(saved)}):\n{msg}")
     return {"status": "lead_hunt_complete", "posts_scanned": len(posts), "new_leads": len(saved), "leads": saved}
