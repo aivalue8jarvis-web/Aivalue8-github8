@@ -22,7 +22,7 @@ from matchmaker import run_buyer_seller_matchmaker, evaluate_lead_with_cfo
 from mailer import process_crm_outreach, handle_email_reply
 from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
-from web_ui import PUBLIC_HOME_HTML, OWNER_PANEL_HTML
+from web_ui import PUBLIC_HOME_HTML, PUBLIC_STORE_HTML, OWNER_PANEL_HTML
 from main_seo import get_dynamic_seo_page
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
@@ -475,9 +475,19 @@ def api_ig_debug():
 
 @app.get("/store", response_class=HTMLResponse)
 def public_store_page():
-    return PUBLIC_HOME_HTML
+    return PUBLIC_STORE_HTML
 
 
 @app.get("/p/{slug}", response_class=HTMLResponse)
 def public_seo_landing_page(slug: str):
     return get_dynamic_seo_page(slug)
+
+
+@app.post("/public/order")
+def public_store_order(req: InvoiceRequest, request: Request):
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+    if not check_rate(ip, limit=10, window_sec=900):
+        raise HTTPException(status_code=429, detail="Thodi der baad try karein.")
+    if req.amount_inr < 29:
+        raise HTTPException(status_code=400, detail="Minimum order amount Rs 29 hai.")
+    return create_invoice(req.client_name, req.client_contact, req.description, req.amount_inr)

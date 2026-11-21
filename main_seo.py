@@ -1,5 +1,3 @@
-# Dynamic micro-landing page generator for organic Google SEO traffic
-from fastapi import HTTPException
 from fastapi.responses import HTMLResponse
 from database import get_connection
 from psycopg2.extras import RealDictCursor
@@ -38,19 +36,22 @@ def get_dynamic_seo_page(slug: str) -> str:
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Match slug against opportunity titles
-            cur.execute("SELECT title, action_plan, category FROM opportunities WHERE LOWER(REPLACE(REPLACE(title, ' ', '-'), '—', '')) LIKE %s LIMIT 1;", (f"%{slug}%",))
+            cur.execute("SELECT html_content FROM client_pages WHERE slug = %s LIMIT 1;", (slug,))
+            cp = cur.fetchone()
+            if cp and cp.get("html_content"):
+                return cp["html_content"]
+
+            cur.execute("SELECT title, action_plan FROM opportunities WHERE LOWER(REPLACE(REPLACE(title, ' ', '-'), '—', '')) LIKE %s LIMIT 1;", (f"%{slug}%",))
             row = cur.fetchone()
             if not row:
-                # Fallback default SEO page
                 return SEO_PAGE_TEMPLATE.format(
-                    title="AI-Powered Business Automation & Growth Services",
-                    description="Discover cutting-edge AI solutions, virtual office software, ATS resumes and automated local business growth tools.",
-                    action_plan="1. Select your required micro-service.\n2. Complete instant UPI checkout.\n3. Autonomous AI delivers your digital asset instantly."
+                    title="AI-Powered Business Automation & Micro-Store",
+                    description="Get AI ATS Resume (₹29), Local Shop Mini-Website (₹99), or Virtual Office (₹49/mo) delivered instantly.",
+                    action_plan="1. Select micro-service at /store.\n2. Pay via UPI.\n3. AI generates & hosts your digital asset instantly."
                 )
             return SEO_PAGE_TEMPLATE.format(
                 title=row["title"],
-                description=f"Automated execution roadmap for {row['title']} powered by aIValue8 Corporation.",
+                description=f"Automated execution roadmap for {row['title']} powered by aIValue8.",
                 action_plan=row["action_plan"]
             )
     finally:
