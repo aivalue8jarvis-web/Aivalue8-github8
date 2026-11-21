@@ -443,3 +443,8 @@ from social_publisher import debug_instagram_connection
 @app.get("/instagram/debug", dependencies=[Depends(verify_admin)])
 def api_ig_debug():
     return debug_instagram_connection()
+
+
+@app.get("/store", response_class=HTMLResponse)
+def public_store_page():
+    return PUBLIC_HOME_HTML
