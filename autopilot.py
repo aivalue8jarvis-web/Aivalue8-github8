@@ -8,6 +8,7 @@ from matchmaker import run_buyer_seller_matchmaker
 from mailer import process_crm_outreach
 from media_factory import generate_media_campaign
 from backup import run_daily_backup
+from growth_loop import run_performance_loop
 from c_suite import run_csuite_board
 
 CORE_CLONES = [
@@ -64,6 +65,7 @@ def run_daily_autopilot() -> dict:
         ("media", generate_media_campaign),
         ("csuite", run_csuite_board),
         ("backup", run_daily_backup),
+        ("growth_loop", run_performance_loop),
     ]:
         try:
             report[key] = fn()
