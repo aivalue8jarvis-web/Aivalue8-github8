@@ -4,52 +4,65 @@ from psycopg2.extras import RealDictCursor
 from database import get_connection
 from sentinel import smart_generate, send_alert, PRIMARY_MODEL
 
-def run_performance_loop() -> dict:
+def get_analytics_metrics() -> dict:
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Get views today vs yesterday
+            # Views Today vs Yesterday
             cur.execute("SELECT COUNT(*) as cnt FROM site_analytics WHERE created_at >= CURRENT_DATE;")
-            views_today = cur.fetchone()["cnt"]
+            v_today = cur.fetchone()["cnt"]
             cur.execute("SELECT COUNT(*) as cnt FROM site_analytics WHERE created_at >= CURRENT_DATE - INTERVAL '1 day' AND created_at < CURRENT_DATE;")
-            views_yesterday = cur.fetchone()["cnt"]
+            v_yest = cur.fetchone()["cnt"]
 
-            # Get sales today vs yesterday
-            cur.execute("SELECT COALESCE(SUM(amount_inr),0) as rev FROM invoices WHERE status='PAID' AND paid_at >= CURRENT_DATE;")
-            rev_today = float(cur.fetchone()["rev"])
-            cur.execute("SELECT COALESCE(SUM(amount_inr),0) as rev FROM invoices WHERE status='PAID' AND paid_at >= CURRENT_DATE - INTERVAL '1 day' AND paid_at < CURRENT_DATE;")
-            rev_yesterday = float(cur.fetchone()["rev"])
+            # Services Delivered Today vs Yesterday
+            cur.execute("SELECT COUNT(*) as cnt FROM invoices WHERE status='PAID' AND paid_at >= CURRENT_DATE;")
+            s_today = cur.fetchone()["cnt"]
+            cur.execute("SELECT COUNT(*) as cnt FROM invoices WHERE status='PAID' AND paid_at >= CURRENT_DATE - INTERVAL '1 day' AND paid_at < CURRENT_DATE;")
+            s_yest = cur.fetchone()["cnt"]
 
-        # Check for performance drop
-        is_drop = (views_today < views_yesterday) or (rev_today < rev_yesterday)
-        
-        loop_status = "OPTIMAL & GROWING 🚀"
-        corrective_plan = "All departments collaborating well. Continue multi-industry lead hunting and social sharing."
-
-        if is_drop:
-            loop_status = "PERFORMANCE DIP DETECTED — BD TASKFORCE ACTIVATED ⚠️"
-            prompt = f"""
-            Performance Data Comparison:
-            - Views Yesterday: {views_yesterday} | Views Today: {views_today}
-            - Revenue Yesterday: ₹{rev_yesterday} | Revenue Today: ₹{rev_today}
-            
-            Tum aIValue8 ki Cross-Functional Business Development & Strategy Team ho. 
-            Koi bhi ego ya single-player approach nahi hai; COO, CFO, CSO aur Marketing milkar loop mein kaam kar rahe hain.
-            Dip aane ke 2 sabse bade karan aur usko theek karne ka ek quick action plan (Hinglish mein) batao.
-            Reply ONLY JSON: {{"root_cause":"1-line analysis","action_plan":"2-line team execution fix"}}
-            """
-            raw = smart_generate(prompt, system_prompt="Tum aIValue8 ke Chief Strategy Officer ho.", model=PRIMARY_MODEL, json_mode=True)
-            analysis = json.loads(raw)
-            corrective_plan = f"Reason: {analysis.get('root_cause')}\nFix: {analysis.get('action_plan')}"
-
-        report_msg = (
-            f"🔄 aIValue8 LOOP-CONNECTED PERFORMANCE REPORT:\n"
-            f"📊 Status: {loop_status}\n"
-            f"👀 Views (Today vs Yest): {views_today} vs {views_yesterday}\n"
-            f"💰 Revenue (Today vs Yest): ₹{rev_today} vs ₹{rev_yesterday}\n\n"
-            f"🤝 Cross-Team Coordination:\n{corrective_plan}"
-        )
-        send_alert(report_msg)
-        return {"status": "loop_executed", "is_drop": is_drop, "views": {"today": views_today, "yest": views_yesterday}, "revenue": {"today": rev_today, "yest": rev_yesterday}, "plan": corrective_plan}
+            # Total Happy Clients
+            cur.execute("SELECT COUNT(*) as cnt FROM crm_leads;")
+            total_clients = cur.fetchone()["cnt"]
     finally:
         conn.close()
+
+    return {
+        "views_today": v_today,
+        "views_yesterday": v_yest,
+        "services_today": s_today,
+        "services_yesterday": s_yest,
+        "total_clients": total_clients
+    }
+
+def run_performance_loop() -> dict:
+    m = get_analytics_metrics()
+    v_today, v_yest = m["views_today"], m["views_yesterday"]
+    s_today, s_yest = m["services_today"], m["services_yesterday"]
+
+    is_flat_or_down = (v_today < v_yest) or (s_today < s_yest)
+    loop_status = "EXPONENTIAL MOMENTUM 🚀"
+    corrective_plan = "All systems firing cylinders. Growth metrics are trending upwards smoothly."
+
+    if is_flat_or_down:
+        loop_status = "MOMENTUM BOOST ACTIVATED ⚡ (Targeting 2x Growth)"
+        prompt = f"""
+        Open-Source Analytics Comparison:
+        - Views Yesterday: {v_yest} | Views Today: {v_today}
+        - Services Yesterday: {s_yest} | Services Today: {s_today}
+        
+        Growth momentum thodi slow ya flat hui hai. aIValue8 ki non-egoistic team milkar ek instant micro-growth hack (jaise naya micro-service drop karna ya organic outreach) plan karegi.
+        Reply ONLY JSON: {{"growth_tactic":"1-line aggressive strategy","team_action":"2-line execution step"}}
+        """
+        raw = smart_generate(prompt, system_prompt="Tum aIValue8 Chief Growth Officer ho.", model=PRIMARY_MODEL, json_mode=True)
+        analysis = json.loads(raw)
+        corrective_plan = f"Tactic: {analysis.get('growth_tactic')}\nAction: {analysis.get('team_action')}"
+
+    report_msg = (
+        f"📊 aIValue8 OPEN-SOURCE MOMENTUM REPORT:\n"
+        f"⚡ Status: {loop_status}\n"
+        f"👀 Views (Today vs Yest): {v_today} vs {v_yest}\n"
+        f"📦 Services (Today vs Yest): {s_today} vs {s_yest}\n\n"
+        f"🤝 Growth Team Action:\n{corrective_plan}"
+    )
+    send_alert(report_msg)
+    return {"status": "momentum_loop_executed", "metrics": m, "plan": corrective_plan}

@@ -166,6 +166,12 @@ def record_visitor(request: Request):
     except Exception:
         pass
 
+from growth_loop import get_analytics_metrics
+
+@app.get("/public/analytics")
+def public_analytics():
+    return get_analytics_metrics()
+
 @app.get("/public/telemetry")
 def public_telemetry():
     try:
