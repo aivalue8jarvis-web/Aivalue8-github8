@@ -155,6 +155,17 @@ def deep_watchdog():
         diagnose_and_alert("watchdog", e)
         raise HTTPException(status_code=500, detail=str(e))
 
+def record_visitor(request: Request):
+    try:
+        ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+        conn = get_connection()
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("INSERT INTO site_analytics (visitor_ip, path) VALUES (%s, %s);", (ip, request.url.path))
+        conn.close()
+    except Exception:
+        pass
+
 @app.get("/public/telemetry")
 def public_telemetry():
     try:
@@ -171,7 +182,16 @@ def public_telemetry():
                 op = cur.fetchone()[0]
         finally:
             conn.close()
-        return {"active_agents": ag, "governance_checks": gv, "healed_bugs": hl, "opportunities_found": op}
+        
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM site_analytics;")
+            v_cnt = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM invoices WHERE status='PAID';")
+            s_cnt = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM crm_leads;")
+            c_cnt = cur.fetchone()[0]
+        return {"total_views": v_cnt, "total_services": s_cnt, "total_clients": c_cnt, "active_agents": ag}
+    
     except Exception:
         return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0}
 
