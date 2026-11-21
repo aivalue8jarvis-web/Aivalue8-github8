@@ -175,11 +175,18 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/panel">Owner Control Room</a></footer>
   </div>
 
-  <a href="https://wa.me/__WA_NUM__?text=%5BGENERAL%5D%20Hi%20Sarahics%20Team%2C%20mujhe%20jankari%20chahiye"
-     target="_blank"
-     style="position:fixed;bottom:20px;right:20px;background:#25D366;color:#fff;padding:12px 18px;border-radius:50px;font-family:sans-serif;font-weight:bold;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);z-index:9999;">
-     💬 WhatsApp Support
-  </a>
+  <div style="position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999;">
+    <a href="https://t.me/aivalue8_rayan_bot"
+       target="_blank"
+       style="background:#0088cc;color:#fff;padding:10px 16px;border-radius:50px;font-family:sans-serif;font-size:13px;font-weight:bold;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);display:flex;align-items:center;gap:6px;">
+       <span>✈️</span> Telegram Support
+    </a>
+    <a href="https://wa.me/__WA_NUM__?text=%5BGENERAL%5D%20Hi%20Sarahics%20Team%2C%20mujhe%20jankari%20chahiye"
+       target="_blank"
+       style="background:#25D366;color:#fff;padding:10px 16px;border-radius:50px;font-family:sans-serif;font-size:13px;font-weight:bold;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);display:flex;align-items:center;gap:6px;">
+       <span>💬</span> WhatsApp Support
+    </a>
+  </div>
 
   <script>
     const canvas=document.getElementById('aiCanvas'),ctx=canvas.getContext('2d');let pts=[];
