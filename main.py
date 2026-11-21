@@ -497,6 +497,7 @@ def public_store_order(req: InvoiceRequest, request: Request):
 
 
 from legal_pages import PRIVACY_HTML, TERMS_HTML, REFUND_HTML, CONTACT_HTML
+from company_vision_pages import MISSION_HTML, FAMILY_HTML, CONTACT_HTML as VISION_CONTACT_HTML
 
 @app.get("/privacy", response_class=HTMLResponse)
 def page_privacy():
@@ -549,3 +550,12 @@ def api_seo_generate():
 @app.get("/legacy/status", dependencies=[Depends(verify_admin)])
 def api_legacy_status():
     return verify_legacy_trust_structure()
+
+
+@app.get("/mission", response_class=HTMLResponse)
+def page_mission():
+    return MISSION_HTML
+
+@app.get("/family", response_class=HTMLResponse)
+def page_family():
+    return FAMILY_HTML
