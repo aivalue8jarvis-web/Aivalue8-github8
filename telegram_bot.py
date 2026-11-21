@@ -13,6 +13,7 @@ from lead_hunter import hunt_public_leads
 from hunter import run_opportunity_scan, generate_daily_venture
 from autopilot import run_daily_autopilot
 from payments import create_invoice, approve_and_settle_invoice, reject_invoice
+from whatsapp_bridge import send_whatsapp_cloud_message, send_whatsapp_template
 from backup import run_daily_backup
 from media_factory import generate_media_campaign, create_app_demo_reel_from_image
 from c_suite import run_csuite_board
@@ -38,6 +39,8 @@ def activate_telegram_webhook() -> dict:
         {"command": "scan", "description": "Nayi Business Opportunities Dhundhein"},
         {"command": "idea", "description": "Aaj Ka Naya Business Idea"},
         {"command": "invoice", "description": "UPI Link (/invoice Name | Amt | Work)"},
+        {"command": "wa", "description": "WhatsApp (/wa Phone | Message)"},
+        {"command": "watest", "description": "WhatsApp Hello Test (/watest Phone)"},
         {"command": "backup", "description": "Database Backup backup@sarahics.in"},
         {"command": "help", "description": "Jarvis Commands Cheat Sheet"}
     ]})
@@ -198,6 +201,24 @@ def _process_update(update: dict):
         if text == "/idea":
             reply_tg(chat_id, "💡 Aaj ka Venture Idea ban raha hai...")
             generate_daily_venture()
+            return
+
+        if text.startswith("/watest"):
+            ph = text[7:].strip()
+            if not ph:
+                reply_tg(chat_id, "Use: /watest 91XXXXXXXXXX")
+                return
+            r = send_whatsapp_template(ph, "hello_world")
+            reply_tg(chat_id, f"📱 WhatsApp Template Test: {r}")
+            return
+
+        if text.startswith("/wa "):
+            parts = [x.strip() for x in text[4:].split("|", 1)]
+            if len(parts) < 2:
+                reply_tg(chat_id, "Use: /wa 91XXXXXXXXXX | Aapka message")
+                return
+            w_res = send_whatsapp_cloud_message(parts[0], parts[1])
+            reply_tg(chat_id, "✅ WhatsApp sent!" if w_res.get("sent") else f"⚠️ WhatsApp Error: {w_res.get('error')}")
             return
 
         if text == "/backup":

@@ -364,7 +364,8 @@ def _save_lead(req: LeadRequest, always_alert: bool = False):
         try:
             with conn:
                 with conn.cursor() as cur:
-                    cur.execute("INSERT INTO crm_leads (lead_name,contact,lead_type,temperature,requirement,source) VALUES (%s,%s,%s,%s,%s,%s);", (req.lead_name, req.contact, req.lead_type, temp, req.requirement, req.source))
+                    cur.execute("INSERT INTO crm_leads (lead_name,contact,lead_type,temperature,requirement,source) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id;", (req.lead_name, req.contact, req.lead_type, temp, req.requirement, req.source))
+                    new_lead_id = cur.fetchone()[0]
         finally:
             conn.close()
         if always_alert or temp == "HOT":
