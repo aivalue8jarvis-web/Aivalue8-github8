@@ -16,6 +16,7 @@ from sentinel import smart_generate, diagnose_and_alert, send_alert, PRIMARY_MOD
 from governance import check_compliance
 from cloner import register_unique_or_reject, spawn_clone_agent, run_clone_agent
 from treasury import record_and_distribute_earning, verify_gateway_signature
+from legacy_trust import verify_legacy_trust_structure
 from hunter import run_opportunity_scan, generate_daily_venture
 from payments import create_invoice, get_invoice, submit_utr_proof, approve_and_settle_invoice, render_invoice_html
 from matchmaker import run_buyer_seller_matchmaker, evaluate_lead_with_cfo
@@ -543,3 +544,8 @@ def sitemap_xml():
 @app.post("/seo/generate", dependencies=[Depends(verify_admin)])
 def api_seo_generate():
     return run_seo_keyword_agent()
+
+
+@app.get("/legacy/status", dependencies=[Depends(verify_admin)])
+def api_legacy_status():
+    return verify_legacy_trust_structure()
