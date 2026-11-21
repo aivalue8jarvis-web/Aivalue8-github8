@@ -188,17 +188,17 @@ def public_telemetry():
                 hl = cur.fetchone()[0]
                 cur.execute("SELECT COUNT(*) FROM opportunities;")
                 op = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM site_analytics;")
+                v_cnt = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM invoices WHERE status='PAID';")
+                s_cnt = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM crm_leads;")
+                c_cnt = cur.fetchone()[0]
         finally:
             conn.close()
-        
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM site_analytics;")
-            v_cnt = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM invoices WHERE status='PAID';")
-            s_cnt = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM crm_leads;")
-            c_cnt = cur.fetchone()[0]
-        return {"total_views": v_cnt, "total_services": s_cnt, "total_clients": c_cnt, "active_agents": ag}
+        return {"active_agents": ag, "governance_checks": gv, "healed_bugs": hl, "opportunities_found": op, "total_views": v_cnt, "total_services": s_cnt, "total_clients": c_cnt}
+    except Exception:
+        return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0, "total_views": 0, "total_services": 0, "total_clients": 0}
     
     except Exception:
         return {"active_agents": 1, "governance_checks": 1, "healed_bugs": 1, "opportunities_found": 0}

@@ -10,7 +10,6 @@ from database import get_connection
 from sentinel import send_alert
 from governance import check_compliance
 from treasury import record_and_distribute_earning
-from fulfillment import fulfill_paid_order
 
 RAZORPAY_UPGRADE_TARGET = Decimal("25000.00")
 
@@ -104,6 +103,11 @@ def approve_and_settle_invoice(invoice_id: str) -> dict:
                     return {"status": "already_paid", "invoice_id": invoice_id}
                 cur.execute("UPDATE invoices SET status = 'PAID', paid_at = CURRENT_TIMESTAMP WHERE invoice_id = %s;", (invoice_id,))
         split_res = record_and_distribute_earning(invoice_id, float(inv["amount_inr"]), f"Invoice: {inv['client_name']}")
+        try:
+            from fulfillment import fulfill_paid_order
+            fulfill_paid_order(invoice_id)
+        except Exception as fe:
+            print(f"Fulfillment error: {fe}")
 
         with conn.cursor() as cur2:
             cur2.execute("SELECT COALESCE(SUM(gross_amount_inr), 0) FROM treasury_ledger;")
