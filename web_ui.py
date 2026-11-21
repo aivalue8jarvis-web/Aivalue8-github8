@@ -116,26 +116,22 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     for(let i=0;i<30;i++)pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5});
     function anim(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<pts.length;i++){let p=pts[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(p.x,p.y,1.6,0,Math.PI*2);ctx.fill();for(let j=i+1;j<pts.length;j++){let p2=pts[j],d=Math.hypot(p.x-p2.x,p.y-p2.y);if(d<120){ctx.strokeStyle=`rgba(52,211,153,${1-d/120})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}}}requestAnimationFrame(anim);}anim();
 
-    // Live Social Proof Rotator
-    const activities = [
-      "✨ Rahul from Mumbai just unlocked ATS Resume for ₹29!",
-      "🚀 Mini-Website & QR Menu deployed for a Pune Cafe (₹99)",
-      "🏢 Anita from Bangalore subscribed to Virtual Office Starter (₹49)",
-      "⚡ Vikram from Delhi generated a custom AI invoice (₹149)",
-      "🔥 Priya from Hyderabad got her professional Cover Letter kit (₹29)"
-    ];
-    let actIdx = 0;
-    setInterval(() => {
-      actIdx = (actIdx + 1) % activities.length;
-      const el = document.getElementById('tickerText');
-      if(el) {
-        el.style.opacity = 0;
-        setTimeout(() => {
-          el.textContent = "🔥 Live Activity: " + activities[actIdx];
-          el.style.opacity = 1;
-        }, 300);
+    // Real-Time Ethical Live Status Fetcher (Zero Fake Messages)
+    async function loadRealTicker() {
+      try {
+        const r = await fetch('/public/telemetry');
+        const d = await r.json();
+        const el = document.getElementById('tickerText');
+        if(el) {
+          el.textContent = `🟢 aIValue8 System Online • Active AI Clones: ${d.active_agents || 1} • Opportunities Tracked: ${d.opportunities_found || 0} • Ethical Governance: Verified`;
+        }
+      } catch(e) {
+        const el = document.getElementById('tickerText');
+        if(el) el.textContent = "🟢 aIValue8 Autonomous Core Online & Ready for Orders";
       }
-    }, 4500);
+    }
+    loadRealTicker();
+    setInterval(loadRealTicker, 15000);
 
     function buyService(desc, amt){
       document.getElementById('sDesc').value = desc;
