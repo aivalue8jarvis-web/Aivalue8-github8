@@ -8,6 +8,7 @@ from matchmaker import run_buyer_seller_matchmaker
 from mailer import process_crm_outreach
 from media_factory import generate_media_campaign
 from backup import run_daily_backup
+from seo_agent import run_seo_keyword_agent
 from growth_loop import run_performance_loop
 from c_suite import run_csuite_board
 
@@ -63,6 +64,7 @@ def run_daily_autopilot() -> dict:
         ("matchmaker", run_buyer_seller_matchmaker),
         ("outreach", process_crm_outreach),
         ("media", generate_media_campaign),
+        ("seo", run_seo_keyword_agent),
         ("csuite", run_csuite_board),
         ("backup", run_daily_backup),
         ("growth_loop", run_performance_loop),

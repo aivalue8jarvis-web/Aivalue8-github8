@@ -6,7 +6,7 @@ from typing import Optional
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, Depends, Request, Body
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
 from google.genai import types
@@ -512,3 +512,34 @@ def page_refund():
 @app.get("/contact", response_class=HTMLResponse)
 def page_contact():
     return CONTACT_HTML
+
+
+from seo_agent import run_seo_keyword_agent
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt():
+    pub = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
+    return f"User-agent: *\nAllow: /\nSitemap: {pub}/sitemap.xml\n"
+
+@app.get("/sitemap.xml")
+def sitemap_xml():
+    pub = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
+    urls = [f"{pub}/", f"{pub}/store", f"{pub}/privacy", f"{pub}/terms", f"{pub}/refund", f"{pub}/contact"]
+    try:
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT slug FROM client_pages WHERE page_type IN ('SEO_GUIDE','MINI_WEBSITE') ORDER BY created_at DESC LIMIT 100;")
+                for row in cur.fetchall():
+                    urls.append(f"{pub}/p/{row[0]}")
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    items = "".join([f"<url><loc>{u}</loc><changefreq>daily</changefreq></url>" for u in urls])
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
+    return Response(content=xml, media_type="application/xml")
+
+@app.post("/seo/generate", dependencies=[Depends(verify_admin)])
+def api_seo_generate():
+    return run_seo_keyword_agent()
