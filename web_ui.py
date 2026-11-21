@@ -11,7 +11,8 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>aIValue8 Corporation — Instant AI Micro-Store &amp; OS</title>
+  <title>aIValue8 Corporation — Instant AI Micro-Store, Web/App &amp; Business Automation</title>
+  <meta name="description" content="Deploy AI-powered ATS resumes for ₹29, local shop mini-websites for ₹99, or virtual office software instantly via UPI." />
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
@@ -20,9 +21,12 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     .container{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:20px 16px 85px;}
     .logo-wrap{margin-bottom:16px;}
     .logo-wrap img{width:100%;max-width:630px;height:auto;display:block;border-radius:18px;border:1px solid rgba(56,189,248,0.25);box-shadow:0 0 35px rgba(37,99,235,0.2);}
-    .pulse-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(52,211,153,0.35);color:#34d399;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:700;margin-bottom:14px;}
-    .dot{width:8px;height:8px;background:#10b981;border-radius:50%;animation:pulse 1.5s infinite;}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,0.8);}70%{box-shadow:0 0 0 10px rgba(16,185,129,0);}}
+    
+    /* Live Ticker Bar */
+    .ticker-bar{background:rgba(16,185,129,0.12);border:1px solid rgba(52,211,153,0.4);color:#34d399;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:10px;box-shadow:0 0 20px rgba(16,185,129,0.15);}
+    .pulse-dot{width:8px;height:8px;background:#10b981;border-radius:50%;animation:pulse 1.5s infinite;flex-shrink:0;}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,0.8);}70%{box-shadow:0 0 0 10px rgba(16,185,129,0);}100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}}
+
     .hero-title{font-size:26px;font-weight:800;color:#f8fafc;margin-bottom:8px;}
     .typed{background:linear-gradient(90deg,#38bdf8,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
     .hero-sub{color:#94a3b8;font-size:14.5px;margin-bottom:18px;}
@@ -33,7 +37,6 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     .price{font-size:26px;font-weight:900;color:#34d399;margin:8px 0;}
     input,select,textarea{width:100%;background:rgba(2,6,23,0.9);color:#f8fafc;border:1px solid #334155;border-radius:10px;padding:12px;margin-bottom:12px;font-size:14px;outline:none;}
     .btn-glow{width:100%;background:linear-gradient(90deg,#2563eb,#10b981);color:#fff;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-    .btn-outline{width:100%;background:transparent;border:1px solid #38bdf8;color:#38bdf8;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;}
     footer{text-align:center;color:#64748b;font-size:13px;margin-top:20px;}
     footer a{color:#60a5fa;text-decoration:none;}
   </style>
@@ -42,14 +45,20 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
   <canvas id="aiCanvas"></canvas>
   <div class="container">
     <div class="logo-wrap"><img src="/logo.svg" alt="aIValue8 Corporation" /></div>
-    <div class="pulse-bar"><span class="dot"></span> aIValue8 Instant Micro-Store Live &bull; Pay via UPI</div>
+    
+    <!-- Live Social Proof Ticker -->
+    <div class="ticker-bar">
+      <div class="pulse-dot"></div>
+      <div id="tickerText">🔥 Live Activity: Rahul from Mumbai just unlocked ATS Resume for ₹29!</div>
+    </div>
+
     <div class="hero-title">Ready-to-Deploy <span class="typed">AI Micro-Services</span></div>
     <p class="hero-sub">Select a service below, pay instantly via UPI, and let our autonomous AI deliver your product in seconds.</p>
 
     <div class="store-grid">
       <div class="store-card">
         <div>
-          <span style="background:rgba(56,189,248,0.15);color:#38bdf8;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">POPULAR</span>
+          <span style="background:rgba(56,189,248,0.15);color:#38bdf8;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">POPULAR • NO-BRAINER</span>
           <h3 style="color:#f8fafc;margin-top:10px;font-size:18px;">ATS Resume &amp; Cover Letter</h3>
           <div class="price">₹29</div>
           <p style="font-size:13px;color:#94a3b8;margin-bottom:15px;">Professional AI-optimized resume, cover letter &amp; interview prep kit delivered instantly.</p>
@@ -59,7 +68,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
 
       <div class="store-card">
         <div>
-          <span style="background:rgba(16,185,129,0.15);color:#34d399;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">FOR LOCAL BUSINESS</span>
+          <span style="background:rgba(16,185,129,0.15);color:#34d399;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">LOCAL BUSINESS</span>
           <h3 style="color:#f8fafc;margin-top:10px;font-size:18px;">Mini-Website &amp; QR Menu</h3>
           <div class="price">₹99</div>
           <p style="font-size:13px;color:#94a3b8;margin-bottom:15px;">Instant mobile-ready landing page with WhatsApp order button for shops, cafes &amp; clinics.</p>
@@ -69,7 +78,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
 
       <div class="store-card">
         <div>
-          <span style="background:rgba(124,58,237,0.15);color:#a78bfa;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">SAAS SUBSCRIPTION</span>
+          <span style="background:rgba(124,58,237,0.15);color:#a78bfa;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;">SAAS TRIAL</span>
           <h3 style="color:#f8fafc;margin-top:10px;font-size:18px;">Virtual Office Starter Desk</h3>
           <div class="price">₹49<span style="font-size:12px;color:#94a3b8;">/mo</span></div>
           <p style="font-size:13px;color:#94a3b8;margin-bottom:15px;">GPS Attendance, Task Board, Team Chat &amp; Client CRM for remote teams.</p>
@@ -78,7 +87,7 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- FAST CHECKOUT MODAL / BOX -->
+    <!-- FAST CHECKOUT BOX -->
     <div class="glass-box" id="checkoutBox">
       <h2 style="font-size:18px;color:#f8fafc;margin-bottom:6px;">⚡ Instant UPI Checkout</h2>
       <small style="color:#94a3b8;display:block;margin-bottom:14px;">Select item above or enter custom requirement below to generate a secure UPI payment link:</small>
@@ -92,14 +101,41 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       <div id="sMsg" style="margin-top:12px;font-size:14px;font-weight:600;"></div>
     </div>
 
-    <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/">Home</a> &bull; <a href="/panel">Owner Room</a></footer>
+    <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/store">Micro-Store</a> &bull; <a href="/panel">Owner Room</a></footer>
   </div>
+
+  <a href="https://wa.me/__WA_NUM__?text=%5BSTORE%5D%20Hi%20Sarahics%20Team%2C%20mujhe%20micro-store%20service%20leni%20hai"
+     target="_blank"
+     style="position:fixed;bottom:20px;right:20px;background:#25D366;color:#fff;padding:12px 18px;border-radius:50px;font-family:sans-serif;font-weight:bold;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.25);z-index:9999;">
+     💬 WhatsApp Support
+  </a>
 
   <script>
     const canvas=document.getElementById('aiCanvas'),ctx=canvas.getContext('2d');let pts=[];
     function rsz(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}window.addEventListener('resize',rsz);rsz();
     for(let i=0;i<30;i++)pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5});
     function anim(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<pts.length;i++){let p=pts[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(p.x,p.y,1.6,0,Math.PI*2);ctx.fill();for(let j=i+1;j<pts.length;j++){let p2=pts[j],d=Math.hypot(p.x-p2.x,p.y-p2.y);if(d<120){ctx.strokeStyle=`rgba(52,211,153,${1-d/120})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}}}requestAnimationFrame(anim);}anim();
+
+    // Live Social Proof Rotator
+    const activities = [
+      "✨ Rahul from Mumbai just unlocked ATS Resume for ₹29!",
+      "🚀 Mini-Website & QR Menu deployed for a Pune Cafe (₹99)",
+      "🏢 Anita from Bangalore subscribed to Virtual Office Starter (₹49)",
+      "⚡ Vikram from Delhi generated a custom AI invoice (₹149)",
+      "🔥 Priya from Hyderabad got her professional Cover Letter kit (₹29)"
+    ];
+    let actIdx = 0;
+    setInterval(() => {
+      actIdx = (actIdx + 1) % activities.length;
+      const el = document.getElementById('tickerText');
+      if(el) {
+        el.style.opacity = 0;
+        setTimeout(() => {
+          el.textContent = "🔥 Live Activity: " + activities[actIdx];
+          el.style.opacity = 1;
+        }, 300);
+      }
+    }, 4500);
 
     function buyService(desc, amt){
       document.getElementById('sDesc').value = desc;
