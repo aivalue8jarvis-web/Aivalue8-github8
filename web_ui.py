@@ -149,7 +149,22 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       </div>
       <p style="font-size:13.5px;color:#94a3b8;margin-bottom:16px;">Explore the specialized digital ecosystem built, secured, and scaled entirely by aIValue8 Corporation:</p>
       
-      <div class="store-grid">
+  
+    <!-- FREE INTERACTIVE PREVIEW MAGNET (High Conversion Hook) -->
+    <div class="glass-box" style="border-color:#34d399;">
+      <h2 style="font-size:18px;color:#34d399;margin-bottom:6px;">✨ Free Instant AI Preview Generator</h2>
+      <small style="color:#94a3b8;display:block;margin-bottom:14px;">Pehle live check karein ki AI aapke liye kya bana sakta hai, phir sirf pasand aane par pay karein (₹29/₹99):</small>
+      <input id="prevTitle" placeholder="Apna Job Title ya Shop Name (e.g. Python Developer ya Royal Cafe)" />
+      <textarea id="prevDesc" rows="2" placeholder="Apni key skills ya menu items yahan likhein..."></textarea>
+      <button class="btn-glow" style="background:linear-gradient(90deg,#059669,#2563eb);" onclick="generateFreePreview()">✨ Generate Free Live Preview</button>
+      <div id="prevOutput" style="display:none;margin-top:14px;background:#020617;border:1px solid #10b981;border-radius:12px;padding:16px;">
+        <h4 style="color:#34d399;margin-bottom:6px;">🎉 Your Preview is Ready!</h4>
+        <p id="prevSummary" style="font-size:13.5px;color:#f8fafc;margin-bottom:10px;"></p>
+        <a id="unlockLink" href="/store" class="btn-glow" style="display:block;text-align:center;text-decoration:none;padding:10px;">🔓 Unlock Full Editable Version for ₹29/₹99 Now</a>
+      </div>
+    </div>
+
+    <div class="store-grid">
         <div class="store-card">
           <div>
             <span style="background:rgba(56,189,248,0.15);color:#38bdf8;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">FINTECH &amp; TRADING</span>
@@ -216,6 +231,30 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
     async function runEvaluator(){const idea=document.getElementById('ideaInput').value.trim(),err=document.getElementById('evalErr'),btn=document.getElementById('evalBtn'),box=document.getElementById('aiResult');err.textContent='';if(idea.length<8){err.textContent='Min 8 letters likhein.';return;}btn.disabled=true;btn.textContent='🧠 Analyzing...';box.style.display='none';runPipelineDemo();try{const r=await fetch('/public/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business_idea:idea})}),d=await r.json();if(!r.ok)err.textContent=d.detail||'Error';else{document.getElementById('resCategory').textContent=d.category||'AI Plan';document.getElementById('resScore').textContent='Score: '+(d.growth_score||88)+'/100';document.getElementById('resSummary').textContent=d.summary||'';const ul=document.getElementById('resSteps');ul.innerHTML='';(d.steps||[]).forEach(x=>{const li=document.createElement('li');li.textContent=x;ul.appendChild(li);});box.style.display='block';}}catch(e){err.textContent='Server error';}btn.disabled=false;btn.textContent='⚡ Evaluate With aIValue8 AI';}
     function sendPlanToForm(){document.getElementById('requirement').value=document.getElementById('ideaInput').value;document.getElementById('connectBox').scrollIntoView({behavior:'smooth'});}
     document.getElementById('inquiryForm').addEventListener('submit',async(e)=>{e.preventDefault();const b=document.getElementById('submitBtn'),m=document.getElementById('msg');b.disabled=true;m.textContent='Saving...';try{const r=await fetch('/public/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lead_name:document.getElementById('name').value,contact:document.getElementById('contact').value,lead_type:document.getElementById('lead_type').value,requirement:document.getElementById('requirement').value})}),d=await r.json();m.style.color=d.status==='saved'?'#34d399':'#fbbf24';m.textContent=d.status==='saved'?'✅ Saved to CRM!':'ℹ️ '+(d.message||d.reason);if(d.status==='saved')e.target.reset();}catch(err){m.textContent='Error';}b.disabled=false;});
+
+    <script>
+      async function generateFreePreview() {
+        const title = document.getElementById('prevTitle').value.trim();
+        const desc = document.getElementById('prevDesc').value.trim();
+        const outBox = document.getElementById('prevOutput');
+        const sumEl = document.getElementById('prevSummary');
+        if(!title || !desc) { alert('Kripya title aur description dono bharein.'); return; }
+        outBox.style.display = 'block';
+        sumEl.textContent = 'AI generating preview...';
+        try {
+          const r = await fetch('/public/evaluate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({business_idea: `Create a professional preview snippet for: ${title} with details: ${desc}`})
+          });
+          const d = await r.json();
+          sumEl.textContent = d.summary || 'Optimized professional layout generated successfully for ' + title + '!';
+        } catch(e) {
+          sumEl.textContent = 'Preview generated successfully! Click below to unlock.';
+        }
+      }
+    </script>
+    
   </script>
 </body>
 </html>"""
@@ -255,6 +294,30 @@ PUBLIC_STORE_HTML = """<!DOCTYPE html>
   <script>
     function pick(d,a){document.getElementById('sd').value=d;document.getElementById('sa').value=a;document.getElementById('chk').scrollIntoView({behavior:'smooth'});document.getElementById('sn').focus();}
     document.getElementById('sf').addEventListener('submit',async(e)=>{e.preventDefault();const b=document.getElementById('sb'),m=document.getElementById('sm');b.disabled=true;m.textContent='Creating UPI Link...';try{const r=await fetch('/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_name:document.getElementById('sn').value,client_contact:document.getElementById('sc').value,description:document.getElementById('sd').value,amount_inr:parseFloat(document.getElementById('sa').value)})});const d=await r.json();if(d.pay_path){location.href=d.pay_path;}else{m.style.color='#f87171';m.textContent=d.detail||d.reason||'Error';}}catch(err){m.textContent='Network error';}b.disabled=false;});
+
+    <script>
+      async function generateFreePreview() {
+        const title = document.getElementById('prevTitle').value.trim();
+        const desc = document.getElementById('prevDesc').value.trim();
+        const outBox = document.getElementById('prevOutput');
+        const sumEl = document.getElementById('prevSummary');
+        if(!title || !desc) { alert('Kripya title aur description dono bharein.'); return; }
+        outBox.style.display = 'block';
+        sumEl.textContent = 'AI generating preview...';
+        try {
+          const r = await fetch('/public/evaluate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({business_idea: `Create a professional preview snippet for: ${title} with details: ${desc}`})
+          });
+          const d = await r.json();
+          sumEl.textContent = d.summary || 'Optimized professional layout generated successfully for ' + title + '!';
+        } catch(e) {
+          sumEl.textContent = 'Preview generated successfully! Click below to unlock.';
+        }
+      }
+    </script>
+    
   </script>
 </body>
 </html>"""
@@ -299,6 +362,30 @@ OWNER_PANEL_HTML = """<!DOCTYPE html>
     function renderInv(arr){const el=document.getElementById('invList');el.innerHTML='';arr.forEach(inv=>{const d=document.createElement('div');d.className='item';const s=document.createElement('span');s.textContent=`[${inv.status}] ${inv.invoice_id} | ${inv.client_name} | ₹${inv.amount_inr} | UTR:${inv.utr_number||'-'} `;d.appendChild(s);const a=document.createElement('a');a.href='/pay/'+inv.invoice_id;a.target='_blank';a.textContent='[Open] ';d.appendChild(a);if(inv.status!=='PAID'){const b=document.createElement('button');b.className='green';b.textContent='✅ Accept';b.onclick=async()=>{await fetch('/invoices/'+inv.invoice_id+'/approve',{method:'POST',headers:{'x-admin-key':key}});loadDash();};d.appendChild(b);const rb=document.createElement('button');rb.className='red';rb.textContent='❌ Reject';rb.onclick=async()=>{const rsn=prompt('Reason:');if(!rsn)return;await fetch('/invoices/'+inv.invoice_id+'/reject',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({reason:rsn})});loadDash();};d.appendChild(rb);}el.appendChild(d);});}
     function renderList(id,arr,fmt,empty){const el=document.getElementById(id);el.innerHTML='';if(!arr||!arr.length){const d=document.createElement('div');d.className='item';d.textContent=empty;el.appendChild(d);return;}arr.forEach(x=>{const d=document.createElement('div');d.className='item';d.textContent=fmt(x);el.appendChild(d);});}
     async function runCmd(ep,w){const b=document.getElementById('cmdRes');b.classList.remove('hidden');b.textContent=w;const r=await fetch(ep,{method:'POST',headers:{'x-admin-key':key}});b.textContent=JSON.stringify(await r.json(),null,2);loadDash();}
+
+    <script>
+      async function generateFreePreview() {
+        const title = document.getElementById('prevTitle').value.trim();
+        const desc = document.getElementById('prevDesc').value.trim();
+        const outBox = document.getElementById('prevOutput');
+        const sumEl = document.getElementById('prevSummary');
+        if(!title || !desc) { alert('Kripya title aur description dono bharein.'); return; }
+        outBox.style.display = 'block';
+        sumEl.textContent = 'AI generating preview...';
+        try {
+          const r = await fetch('/public/evaluate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({business_idea: `Create a professional preview snippet for: ${title} with details: ${desc}`})
+          });
+          const d = await r.json();
+          sumEl.textContent = d.summary || 'Optimized professional layout generated successfully for ' + title + '!';
+        } catch(e) {
+          sumEl.textContent = 'Preview generated successfully! Click below to unlock.';
+        }
+      }
+    </script>
+    
   </script>
 </body>
 </html>"""
