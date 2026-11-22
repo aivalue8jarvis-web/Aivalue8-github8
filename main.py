@@ -565,3 +565,13 @@ def page_family():
 @app.get("/workspace", response_class=HTMLResponse)
 def client_workspace_page():
     return WORKSPACE_HTML
+
+
+class ProductLaunchRequest(BaseModel):
+    product_name: str
+    price_inr: float
+    target_audience: str
+
+@app.post("/ecosystem/launch-product", dependencies=[Depends(verify_admin)])
+def api_launch_product(req: ProductLaunchRequest):
+    return broadcast_product_launch(req.product_name, req.price_inr, req.target_audience)
