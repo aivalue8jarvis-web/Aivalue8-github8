@@ -575,3 +575,8 @@ class ProductLaunchRequest(BaseModel):
 @app.post("/ecosystem/launch-product", dependencies=[Depends(verify_admin)])
 def api_launch_product(req: ProductLaunchRequest):
     return broadcast_product_launch(req.product_name, req.price_inr, req.target_audience)
+
+
+@app.post("/media/batch-reels", dependencies=[Depends(verify_admin)])
+def api_batch_reels():
+    return generate_daily_batch_reels()
