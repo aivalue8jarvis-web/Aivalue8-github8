@@ -9,6 +9,7 @@ from matchmaker import run_buyer_seller_matchmaker
 from mailer import process_crm_outreach
 from media_factory import generate_media_campaign
 from deal_closer import run_autonomous_deal_negotiation
+from sales_outreach_bot import run_autonomous_sales_outreach
 from backup import run_daily_backup
 from seo_agent import run_seo_keyword_agent
 from growth_loop import run_performance_loop
@@ -69,6 +70,7 @@ def run_daily_autopilot() -> dict:
         ("hunter", run_opportunity_scan),
         ("matchmaker", run_buyer_seller_matchmaker),
         ("deal_closer", run_autonomous_deal_negotiation),
+        ("sales_outreach", run_autonomous_sales_outreach),
         ("outreach", process_crm_outreach),
         ("media", generate_media_campaign),
         ("seo", run_seo_keyword_agent),
