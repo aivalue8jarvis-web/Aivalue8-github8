@@ -3,6 +3,7 @@ from database import get_connection
 from sentinel import send_alert, diagnose_and_alert
 from cloner import spawn_clone_agent, run_clone_agent
 from lead_hunter import hunt_public_leads
+from hyper_local_radar import hunt_nabh_hospital_leads, hunt_trading_beginner_leads
 from hunter import run_opportunity_scan
 from matchmaker import run_buyer_seller_matchmaker
 from mailer import process_crm_outreach
@@ -37,7 +38,9 @@ def _ensure_clones(report):
 def run_4x_industry_scan() -> dict:
     """Har 6 ghante (din mein 4 baar) chalne wala Multi-Industry & Job/Employer scanner."""
     res = {"lead_hunt": None, "hunter": None, "outreach": None, "dynamic_clones": []}
-    for key, fn in [("lead_hunt", hunt_public_leads), ("hunter", run_opportunity_scan), ("outreach", process_crm_outreach)]:
+    for key, fn in [("lead_hunt", hunt_public_leads),
+        ("nabh_hunt", hunt_nabh_hospital_leads),
+        ("trade_hunt", hunt_trading_beginner_leads), ("hunter", run_opportunity_scan), ("outreach", process_crm_outreach)]:
         try:
             res[key] = fn()
         except Exception as e:
@@ -61,6 +64,8 @@ def run_daily_autopilot() -> dict:
 
     for key, fn in [
         ("lead_hunt", hunt_public_leads),
+        ("nabh_hunt", hunt_nabh_hospital_leads),
+        ("trade_hunt", hunt_trading_beginner_leads),
         ("hunter", run_opportunity_scan),
         ("matchmaker", run_buyer_seller_matchmaker),
         ("deal_closer", run_autonomous_deal_negotiation),
