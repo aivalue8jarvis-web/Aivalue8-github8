@@ -24,6 +24,7 @@ from mailer import process_crm_outreach, handle_email_reply
 from media_factory import generate_media_campaign
 from autopilot import run_daily_autopilot
 from web_ui import PUBLIC_HOME_HTML, PUBLIC_STORE_HTML, OWNER_PANEL_HTML
+from client_workspace import WORKSPACE_HTML
 from main_seo import get_dynamic_seo_page
 
 ADMIN_API_KEY = os.getenv("AIVALUE8_ADMIN_KEY", "change-this-secret-key")
@@ -559,3 +560,8 @@ def page_mission():
 @app.get("/family", response_class=HTMLResponse)
 def page_family():
     return FAMILY_HTML
+
+
+@app.get("/workspace", response_class=HTMLResponse)
+def client_workspace_page():
+    return WORKSPACE_HTML
