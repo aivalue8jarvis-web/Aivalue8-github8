@@ -140,6 +140,63 @@ PUBLIC_HOME_HTML = """<!DOCTYPE html>
       </form>
       <div id="msg" style="margin-top:10px;font-size:14px;font-weight:600;"></div>
     </div>
+
+    <!-- ECOSYSTEM IN-HOUSE PRODUCTIONS SHOWCASE -->
+    <div class="glass-box" style="border-color:rgba(56,189,248,0.4);">
+      <div class="box-head">
+        <h2>🏛️ aIValue8 Holding Ecosystem &amp; In-House Productions</h2>
+        <span style="font-size:12px;color:#34d399;">Our Proprietary Tech &amp; Platforms</span>
+      </div>
+      <p style="font-size:13.5px;color:#94a3b8;margin-bottom:16px;">Explore the specialized digital ecosystem built, secured, and scaled entirely by aIValue8 Corporation:</p>
+      
+      <div class="store-grid">
+        <div class="store-card">
+          <div>
+            <span style="background:rgba(56,189,248,0.15);color:#38bdf8;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">FINTECH &amp; TRADING</span>
+            <h3 style="color:#f8fafc;margin-top:10px;font-size:17px;">Anas Trading Institute</h3>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Professional financial market education, algorithmic insights, and secured trading tech infrastructure.</p>
+          </div>
+          <a href="https://anas.sarahics.in" target="_blank" class="btn-outline" style="text-align:center;display:block;">Visit Anas ↗</a>
+        </div>
+
+        <div class="store-card">
+          <div>
+            <span style="background:rgba(52,211,153,0.15);color:#34d399;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">EMOTIONAL AI</span>
+            <h3 style="color:#f8fafc;margin-top:10px;font-size:17px;">Saifu Virtual Family</h3>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Deep empathetic AI companion providing 24/7 emotional support, text/audio comfort, kitchen guidance &amp; wisdom.</p>
+          </div>
+          <a href="https://saifu.sarahics.in" target="_blank" class="btn-outline" style="text-align:center;display:block;">Visit Saifu ↗</a>
+        </div>
+
+        <div class="store-card">
+          <div>
+            <span style="background:rgba(244,63,94,0.15);color:#fb7185;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">SECURITY &amp; VAULT</span>
+            <h3 style="color:#f8fafc;margin-top:10px;font-size:17px;">Kavach Data Shield</h3>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">Sovereign encryption, zero-knowledge data protection, and bulletproof privacy compliance infrastructure.</p>
+          </div>
+          <a href="https://kavach.sarahics.in" target="_blank" class="btn-outline" style="text-align:center;display:block;">Visit Kavach ↗</a>
+        </div>
+
+        <div class="store-card">
+          <div>
+            <span style="background:rgba(168,85,247,0.15);color:#c084fc;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">AUTOMATION ENGINE</span>
+            <h3 style="color:#f8fafc;margin-top:10px;font-size:17px;">Miracle Automation</h3>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;">High-speed workflow triggers, cross-app data synchronization, and automated business operations.</p>
+          </div>
+          <a href="https://miracle.sarahics.in" target="_blank" class="btn-outline" style="text-align:center;display:block;">Visit Miracle ↗</a>
+        </div>
+
+        <div class="store-card" style="grid-column: 1 / -1;">
+          <div>
+            <span style="background:rgba(234,179,8,0.15);color:#facc15;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;">ELITE BACKEND INFRASTRUCTURE</span>
+            <h3 style="color:#f8fafc;margin-top:10px;font-size:17px;">Haaroon ABH Elite Backend</h3>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:10px;">High-performance scalable web/app server architecture powering heavy computational workloads and secure API routing.</p>
+          </div>
+          <a href="https://haaroon-abh-backend-elitefrontend.vercel.app" target="_blank" class="btn-outline" style="text-align:center;display:block;max-width:240px;">Explore Elite Backend ↗</a>
+        </div>
+      </div>
+    </div>
+
     <footer><strong>aIValue8 Corporation (Sarahics)</strong> &bull; <a href="/mission">Mission</a> &bull; <a href="/family">Virtual Family</a> &bull; <a href="/store">Micro-Store</a> &bull; <a href="/privacy">Privacy</a> &bull; <a href="/contact">Contact</a> &bull; <a href="/panel">Owner</a></footer>
   </div>
 """ + _DOCK_HTML + """
