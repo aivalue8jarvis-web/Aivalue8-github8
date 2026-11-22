@@ -10,8 +10,9 @@ PUBLIC_URL = os.getenv("PUBLIC_SITE_URL", "https://sarahics.in").rstrip("/")
 
 def run_seo_keyword_agent() -> dict:
     prompt = f"""
-    Tum aIValue8 (Website: {PUBLIC_URL}) ke Senior Google SEO Strategist ho.
-    India ke small businesses, students, CA firms ya startups ke liye 1 high-intent, low-competition Google Search Keyword chuno jo hamari services se match kare.
+    Tum aIValue8 Corporation (Website: {PUBLIC_URL}) ke Chief SEO Growth Officer ho.
+    Hamare flagship products hain: ATS Resume (Rs 29), Local Shop Mini-Website (Rs 99), Virtual Office SaaS (Rs 49/mo), Anas Trading Institute, aur Saifu Emotional AI.
+    Inme se kisi ek commercial high-intent keyword ko chuno jise log Google par search karte hain.
     Us keyword par ek genuinely helpful HTML guide + 3 FAQs + CTA link to {PUBLIC_URL}/store banao.
     Reply ONLY valid JSON:
     {{
@@ -28,15 +29,15 @@ def run_seo_keyword_agent() -> dict:
         data = json.loads(raw)
     except Exception as e:
         data = {
-            "keyword": "ai business automation india",
-            "slug": "ai-business-automation-india",
-            "title": "AI Business Automation & Growth Services in India",
-            "meta_desc": "Scale your business with automated AI workflows, virtual office software, and instant mini-websites starting at ₹29.",
-            "faq_list": [{"q": "How does aIValue8 work?", "a": "Our autonomous AI executes digital tasks, website building, and CRM management instantly."}],
-            "article_html": "<h3>Scale with AI</h3><p>Automate your workflow, setup professional web pages, and boost revenue effortlessly.</p>"
+            "keyword": "instant ats resume maker india",
+            "slug": "instant-ats-resume-maker-india",
+            "title": "Instant ATS Resume & Cover Letter Maker Online",
+            "meta_desc": "Get professional AI-optimized ATS resume and cover letter kit delivered instantly for just Rs 29 via UPI.",
+            "faq_list": [{"q": "How to get ATS resume for Rs 29?", "a": "Visit our micro-store at sarahics.in/store, enter your details, and pay instantly via UPI."}],
+            "article_html": "<h3>Boost Your Job Interviews with AI</h3><p>Get a clean, ATS-compliant resume instantly designed to pass recruiter screening filters without hassle.</p>"
         }
 
-    raw_slug = data.get("slug") or data.get("keyword") or "ai-business-india"
+    raw_slug = data.get("slug") or data.get("keyword") or "ai-growth-india"
     slug = re.sub(r"[^a-z0-9]+", "-", raw_slug.lower()).strip("-")[:70]
     title = (data.get("title") or data.get("keyword") or "aIValue8 Guide").strip()
 
@@ -70,8 +71,8 @@ def run_seo_keyword_agent() -> dict:
     {data.get('article_html', '')}
     <h3>Frequently Asked Questions</h3>
     {faq_html}
-    <a href="/store" class="btn">🚀 Try Micro-Store (Starts at ₹29)</a>
-    <p style="margin-top:18px;font-size:13px;"><a href="/" style="color:#60a5fa;">← Home</a> | <a href="/privacy" style="color:#60a5fa;">Privacy</a></p>
+    <a href="/store" class="btn">🚀 Explore Micro-Store (Starts at ₹29)</a>
+    <p style="margin-top:18px;font-size:13px;"><a href="/" style="color:#60a5fa;">← Home</a> | <a href="/store" style="color:#60a5fa;">Micro-Store</a></p>
   </div>
 </body>
 </html>"""
@@ -88,5 +89,5 @@ def run_seo_keyword_agent() -> dict:
         conn.close()
 
     live_url = f"{PUBLIC_URL}/p/{slug}"
-    send_alert(f"🔍 NEW GOOGLE SEO PAGE LIVE!\nKeyword: {data.get('keyword')}\n🔗 {live_url}")
+    send_alert(f"🔍 NEW GOOGLE SEO PRODUCT PAGE LIVE!\nKeyword: {data.get('keyword')}\n🔗 {live_url}")
     return {"status": "seo_page_live", "keyword": data.get("keyword"), "url": live_url}
