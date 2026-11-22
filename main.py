@@ -580,3 +580,34 @@ def api_launch_product(req: ProductLaunchRequest):
 @app.post("/media/batch-reels", dependencies=[Depends(verify_admin)])
 def api_batch_reels():
     return generate_daily_batch_reels()
+
+
+@app.get("/whatsapp/webhook")
+def verify_whatsapp_webhook(request: Request):
+    # Meta webhook verification challenge
+    verify_token = "aivalue8_secure_token"
+    mode = request.query_params.get("hub.mode")
+    token = request.query_params.get("hub.verify_token")
+    challenge = request.query_params.get("hub.challenge")
+    if mode and token and mode == "subscribe" and token == verify_token:
+        return PlainTextResponse(challenge)
+    raise HTTPException(status_code=403, detail="Verification failed")
+
+@app.post("/whatsapp/webhook")
+async def receive_whatsapp_webhook(request: Request):
+    body = await request.json()
+    try:
+        entry = body.get("entry", [])[0]
+        changes = entry.get("changes", [])[0]
+        value = changes.get("value", {})
+        messages = value.get("messages", [])
+        if messages:
+            msg = messages[0]
+            sender = msg.get("from")
+            text = msg.get("text", {}).get("body", "")
+            if text and sender:
+                reply_txt = generate_whatsapp_ai_reply(text, sender)
+                send_whatsapp_cloud_message(sender, reply_txt)
+    except Exception as e:
+        print(f"WhatsApp webhook error: {e}")
+    return {"status": "received"}
