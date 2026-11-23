@@ -47,11 +47,10 @@ def hunt_nabh_hospital_leads() -> dict:
             name = h.get("hospital_name", "").strip()
             contact = h.get("contact_info", "").strip()
             
-            # STRICT FILTER: Discard if no valid email or phone digits
             if not name or not _has_valid_contact(contact):
                 continue
             
-            if not register_unique_or_reject("NABH_LEAD", name, contact):
+            if not register_unique_or_reject("NABH_LEAD", name, name):
                 continue
                 
             with conn:
@@ -102,14 +101,13 @@ def hunt_trading_beginner_leads() -> dict:
             name = s.get("seeker_name", "Trading Seeker").strip()
             contact = s.get("contact", "").strip()
             
-            # STRICT FILTER: Discard if no valid contact
             if not _has_valid_contact(contact):
                 continue
                 
             if not register_unique_or_reject("TRADE_SEEKER", name, contact):
                 continue
                 
-            with ncol := conn: # safe syntax
+            with conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         "INSERT INTO crm_leads (lead_name, contact, lead_type, temperature, requirement, source) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT (contact) DO NOTHING;",
@@ -120,6 +118,6 @@ def hunt_trading_beginner_leads() -> dict:
         conn.close()
 
     if saved:
-        txt = "\n".join([f"📈 VERIFIED TRADING SEEKER: {x['seeker_name']}\n   📞 Contact: {x['contact_info'] if 'contact_info' in x else x.get('contact')}" for x in saved])
+        txt = "\n".join([f"📈 VERIFIED TRADING SEEKER: {x['seeker_name']}\n   📞 Contact: {x.get('contact_info') or x.get('contact')}" for x in saved])
         send_alert(f"⚡ VERIFIED TRADING LEADS ({len(saved)}):\n{txt}")
     return {"status": "trading_hunt_complete", "verified_seekers_found": len(saved)}
