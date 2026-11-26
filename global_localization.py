@@ -10,7 +10,7 @@ CURRENCY_MAP = {
 }
 
 LANGUAGE_MAP = {
-    "IN": {"lang": "English / Hinglish", "welcome": "Build, Automate & Scale Your Business with AI"},
+    "IN": {"lang": "Professional English Only", "welcome": "Build, Automate & Scale Your Business with AI"},
     "AE": {"lang": "Arabic", "welcome": "قم بناء وت स्वتمة وتوسيع نطاق عملك باستخدام الذكاء الاصطناعي"},
     "EU": {"lang": "French", "welcome": "Construisez, automatisez et développez votre entreprise avec l'IA"},
     "US": {"lang": "English", "welcome": "Build, Automate & Scale Your Business with AI"}

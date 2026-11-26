@@ -5,7 +5,7 @@ FOUNDER_BIOGRAPHY = {
     "title": "Founder & Chief Executive Officer",
     "corporation": "aIValue8 Corporation (Sarahics)",
     "pedigree": "Visionary industrialist, expert in multi-industry systemic architecture, autonomous corporate scaling, and global B2B trade infrastructure.",
-    "corporate_tone": "Authoritative, elite, ultra-professional, uncompromising on quality, deeply secure, and globally minded.",
+    "corporate_tone": "Strictly Professional English Only. No casual slang, no Hinglish for Indian corporate or global B2B markets, uncompromising on quality, deeply secure, and globally minded.",
     "mandate": "Position aIValue8 as an institutional-grade global giant. Every proposal, public page, and client touchpoint must exude supreme confidence, elite execution, and flawless corporate biology."
 }
 
