@@ -1,3 +1,4 @@
+from founder_persona import get_founder_persona_prompt
 import os
 import time
 import requests
@@ -74,7 +75,7 @@ def diagnose_and_alert(module: str, error_obj: Exception):
         if client:
             diagnosis = smart_generate(
                 f"Module '{module}' mein ye error aaya: {err_str}. 2 line mein root cause aur fix batao.",
-                system_prompt="Tum aIValue8 ke Head Sentinel ho.",
+                system_prompt=get_founder_persona_prompt() + "\nTum aIValue8 ke Head Sentinel ho.",
                 model=FALLBACK_MODEL
             )
     except Exception:
