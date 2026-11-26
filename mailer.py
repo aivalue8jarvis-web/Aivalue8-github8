@@ -1,3 +1,4 @@
+from human_mimicry import human_like_delay
 import os
 import re
 import json
@@ -100,6 +101,7 @@ def process_crm_outreach() -> dict:
             gov = check_compliance("EMAIL_OUTREACH", f"{mail_data['subject']} | {mail_data['body']}")
             if not gov["approved"]:
                 continue
+            human_like_delay("email")
             send_res = send_email_https(email, mail_data["subject"], mail_data["body"])
             if not send_res["sent"]:
                 send_alert(f"📧 EMAIL DRAFT LOGGED ({stage_desc}):\nTo: {email}\nSub: {mail_data['subject']}\n\n{mail_data['body']}")
