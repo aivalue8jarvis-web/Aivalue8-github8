@@ -36,6 +36,7 @@ TABLES = [
     "CREATE TABLE IF NOT EXISTS vision_evaluations (id SERIAL PRIMARY KEY, filename VARCHAR(200), eval_type VARCHAR(50), summary TEXT, estimated_value_inr NUMERIC(12,2) DEFAULT 0.00, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
     "CREATE TABLE IF NOT EXISTS client_pages (slug VARCHAR(120) PRIMARY KEY, client_name VARCHAR(150), page_type VARCHAR(40), html_content TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
     "CREATE TABLE IF NOT EXISTS site_analytics (id SERIAL PRIMARY KEY, visitor_ip VARCHAR(60), path VARCHAR(150), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
+    "CREATE TABLE IF NOT EXISTS feedback_memory (id SERIAL PRIMARY KEY, source_type VARCHAR(50), raw_input TEXT, ai_learning TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
     "CREATE TABLE IF NOT EXISTS csuite_reports (id SERIAL PRIMARY KEY, officer VARCHAR(30), topic TEXT, plan_json JSONB, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
 ]
 
