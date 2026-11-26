@@ -611,3 +611,12 @@ async def receive_whatsapp_webhook(request: Request):
     except Exception as e:
         print(f"WhatsApp webhook error: {e}")
     return {"status": "received"}
+
+
+class SovereignProposalRequest(BaseModel):
+    client_name: str
+    enterprise_need: str
+
+@app.post("/sovereign/proposal", dependencies=[Depends(verify_admin)])
+def api_sovereign_proposal(req: SovereignProposalRequest):
+    return generate_enterprise_sovereign_proposal(req.client_name, req.enterprise_need)
