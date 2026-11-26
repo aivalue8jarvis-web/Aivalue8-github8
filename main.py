@@ -637,3 +637,13 @@ def api_global_proposal(req: GlobalProposalRequest):
 def api_evolution():
     from evolution_engine import run_virtual_family_evolution
     return run_virtual_family_evolution()
+
+
+class TailoredRequest(BaseModel):
+    client_name: str
+    country: str = "IN"
+    requirement: str
+
+@app.post("/sovereign/tailored-solution", dependencies=[Depends(verify_admin)])
+def api_tailored_solution(req: TailoredRequest):
+    return generate_tailored_client_solution(req.client_name, req.country, req.requirement)
