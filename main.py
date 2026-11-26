@@ -620,3 +620,14 @@ class SovereignProposalRequest(BaseModel):
 @app.post("/sovereign/proposal", dependencies=[Depends(verify_admin)])
 def api_sovereign_proposal(req: SovereignProposalRequest):
     return generate_enterprise_sovereign_proposal(req.client_name, req.enterprise_need)
+
+
+class GlobalProposalRequest(BaseModel):
+    client_name: str
+    country: str
+    industry: str
+    requirement: str
+
+@app.post("/sovereign/global-proposal", dependencies=[Depends(verify_admin)])
+def api_global_proposal(req: GlobalProposalRequest):
+    return generate_global_enterprise_proposal(req.client_name, req.country, req.industry, req.requirement)
