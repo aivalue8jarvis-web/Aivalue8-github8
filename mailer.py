@@ -1,3 +1,4 @@
+from timezone_guard import is_local_business_hours
 from human_mimicry import human_like_delay
 import os
 import re
@@ -20,6 +21,9 @@ def extract_email(text: str) -> str:
     return m.group(0) if m else ""
 
 def send_email_https(to_email: str, subject: str, body: str) -> dict:
+    if not is_local_business_hours("IN"):
+        print(f"⏳ [TIMEZONE GUARD] Outside local office hours. Queuing email for {to_email} until daytime.")
+        return {"sent": False, "mode": "QUEUED_OFF_HOURS", "code": 0}
     footer = "\n\n---\naIValue8 Corporation (Sarahics) | AI, Web/App, Automation & Trade\nSupport: sales@sarahics.in"
     full_body = body.strip() + footer
     
