@@ -631,3 +631,9 @@ class GlobalProposalRequest(BaseModel):
 @app.post("/sovereign/global-proposal", dependencies=[Depends(verify_admin)])
 def api_global_proposal(req: GlobalProposalRequest):
     return generate_global_enterprise_proposal(req.client_name, req.country, req.industry, req.requirement)
+
+
+@app.post("/evolution/run", dependencies=[Depends(verify_admin)])
+def api_evolution():
+    from evolution_engine import run_virtual_family_evolution
+    return run_virtual_family_evolution()
