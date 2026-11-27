@@ -653,3 +653,13 @@ def api_tailored_solution(req: TailoredRequest):
 @app.get("/results", response_class=HTMLResponse)
 def page_results():
     return RESULTS_HTML
+
+
+class SupportRequest(BaseModel):
+    client_name: str
+    client_contact: str
+    query: str
+
+@app.post("/support/ticket")
+def api_support_ticket(req: SupportRequest):
+    return handle_client_support_ticket(req.client_name, req.client_contact, req.query)
