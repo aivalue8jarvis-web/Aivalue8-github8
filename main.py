@@ -499,6 +499,7 @@ def public_store_order(req: InvoiceRequest, request: Request):
 
 from legal_pages import PRIVACY_HTML, TERMS_HTML, REFUND_HTML, CONTACT_HTML
 from company_vision_pages import MISSION_HTML, FAMILY_HTML, CONTACT_HTML as VISION_CONTACT_HTML
+from corporate_results_page import RESULTS_HTML
 
 @app.get("/privacy", response_class=HTMLResponse)
 def page_privacy():
@@ -647,3 +648,8 @@ class TailoredRequest(BaseModel):
 @app.post("/sovereign/tailored-solution", dependencies=[Depends(verify_admin)])
 def api_tailored_solution(req: TailoredRequest):
     return generate_tailored_client_solution(req.client_name, req.country, req.requirement)
+
+
+@app.get("/results", response_class=HTMLResponse)
+def page_results():
+    return RESULTS_HTML
